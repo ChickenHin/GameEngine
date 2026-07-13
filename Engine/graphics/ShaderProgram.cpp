@@ -232,6 +232,11 @@ auto ShaderProgram::attribs() const noexcept -> const std::unordered_map<std::st
     return m_Attribs;
 }
 
+auto ShaderProgram::ubos() noexcept -> const std::unordered_map<std::string, uint32_t>&
+{
+    return m_UBOs;
+}
+
 auto ShaderProgram::get_program_info(uint32_t what) const -> int32_t
 {
     int32_t result = -1;
@@ -502,3 +507,50 @@ auto ShaderProgram::glsl_type_to_string(uint32_t type) -> const char*
         default: return "unknown";
     }
 }
+
+auto ShaderProgram::create_ubo(const char* name, size_t size, void* data) -> void
+{
+    uint32_t ubo{};
+
+    gl::GenBuffers(1, &ubo);
+    gl::BindBuffer(GL_UNIFORM_BUFFER, ubo);
+
+    m_UBOs[name] = ubo;
+
+    uint32_t binding = static_cast<uint32_t>(UBOPoint.size());
+    UBOPoint[name] = binding;
+
+    gl::BufferData(GL_UNIFORM_BUFFER, size, data, GL_DYNAMIC_DRAW);
+    gl::BindBufferBase(GL_UNIFORM_BUFFER, binding, ubo);
+
+    auto lbl_name = name + std::string(" UBO");
+    gl::label_buffer(ubo, lbl_name.c_str());
+}
+
+auto ShaderProgram::attach_ubo(const char* name) -> void
+{
+    gl::BindBuffer(GL_UNIFORM_BUFFER, m_UBOs.at(name));
+
+    uint32_t idx = gl::GetUniformBlockIndex(m_Id, name);
+
+    if (idx == GL_INVALID_INDEX)
+        return;
+
+    auto it = UBOPoint.find(name);
+
+    if (it == UBOPoint.end())
+        return;
+
+    gl::UniformBlockBinding(
+        m_Id,
+        idx,
+        it->second
+    );
+}
+
+auto ShaderProgram::set_ubo(const char* name, size_t size, void* data) -> void
+{
+    gl::BindBuffer(GL_UNIFORM_BUFFER, m_UBOs.at(name));
+    gl::BufferSubData(GL_UNIFORM_BUFFER, 0, size, data);
+}
+

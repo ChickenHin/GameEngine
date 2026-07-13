@@ -30,8 +30,10 @@ public:
     auto attribs_count() const                  -> int32_t ;
     auto uniform_location(const char*) const -> uint32_t;
     auto attrib_location(const char*) const -> uint32_t;
-    auto uniforms() const noexcept -> const std::unordered_map<std::string, InternalType>&;
     auto attribs() const noexcept -> const std::unordered_map<std::string, InternalType>&;
+    auto uniforms() const noexcept -> const std::unordered_map<std::string, InternalType>&;
+    static auto ubos() noexcept -> const std::unordered_map<std::string, uint32_t>&;
+
     static auto current_program() -> uint32_t;
     static auto glsl_type_to_string(uint32_t type) -> const char*;
     
@@ -52,6 +54,10 @@ public:
     auto set_uniform(const std::string &name, const emath::mat4 &value) const -> void;
     auto set_uniform(const std::string& name, const emath::mat4* value, int32_t count) const -> void;
 
+    static auto create_ubo(const char* name, size_t size, void* data = nullptr) -> void;
+    static auto set_ubo(const char* name, size_t size, void* data) -> void;
+    auto attach_ubo(const char* name) -> void;
+
 private:
     auto get_program_info(uint32_t what) const -> int32_t;
     auto link() const -> void;
@@ -66,6 +72,8 @@ private:
     std::vector<std::shared_ptr<class Shader>> m_Shaders;
     std::unordered_map<std::string, InternalType> m_Attribs;
     std::unordered_map<std::string, InternalType> m_Uniforms;
+    inline static std::unordered_map<std::string, uint32_t> m_UBOs;
+    inline static std::unordered_map<std::string, uint32_t> UBOPoint;
 };
 
 #ifdef __cpp_lib_formatters

@@ -37,6 +37,7 @@ private:
     const class OpenGL& m_GApi;
     DrawMode m_DrawMode;
     mutable RenderStats m_Stats;
+    mutable uint32_t m_Frame;
 
     struct {
         std::shared_ptr<class ShaderProgram> Program;
@@ -56,6 +57,4 @@ private:
         std::shared_ptr<class ShaderProgram> Program;
         uint32_t VAO, VBO, Atlas;
     } m_Text;
-
-    uint32_t m_CameraUBO, m_SunUBO;
 };

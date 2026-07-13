@@ -10,6 +10,7 @@
 #include "Mesh.hpp"
 #include "ShaderProgram.hpp"
 #include "emath/vec3.hpp"
+#include "emath/uvec2.hpp"
 #include "gl.hpp"
 
 #include <core/Log.hpp>
@@ -30,20 +31,31 @@
 
 namespace UBO {
 
-    struct alignas(16) Camera
+    struct Camera
     {
         constexpr static int32_t BINDING_POINT = 0;
+
         alignas(16) emath::mat4 Projection;
         alignas(16) emath::mat4 View;
         emath::vec3 Position;
     };
 
-    struct alignas(16) SunLight
+    struct SunLight
     {
         constexpr static int32_t BINDING_POINT = 1;
+
         alignas(16) emath::vec3 Direction;
         alignas(16) emath::vec3 Color;
         alignas(16) emath::vec3 Ambient;
+    };
+
+    struct Globle
+    {
+        constexpr static int32_t BINDING_POINT = 2;
+
+        alignas(8) emath::uvec2 ScreenResolution;
+        alignas(4) uint32_t Frame;
+        alignas(4) uint32_t Flags;
     };
 
 }
@@ -51,6 +63,7 @@ namespace UBO {
 OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
     : m_GApi(ctx)
     , m_DrawMode(DrawMode::Triangles)
+    , m_Frame(0)
     , m_Depth {
         std::make_shared<ShaderProgram>("res/shaders/depth.vert", "res/shaders/depth.frag")
     }
@@ -66,7 +79,6 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
         std::make_shared<ShaderProgram>("res/shaders/text.vert", "res/shaders/text.frag"),
         0, 0, 0
     }
-    , m_CameraUBO(0), m_SunUBO(0)
 {
     {
         gl::label_program(m_Depth.Program->id(), "Depth pre-pass");
@@ -97,44 +109,19 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
     gl::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     gl::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-
     // Prepeare Camera UBO --------------------------------------------------------------------------
-    gl::GenBuffers(1, &m_CameraUBO);
-    gl::label_buffer(m_CameraUBO, "Camera UBO");
-
-    gl::BindBuffer(GL_UNIFORM_BUFFER, m_CameraUBO);
-
-    gl::BufferData(GL_UNIFORM_BUFFER, sizeof(UBO::Camera), nullptr, GL_DYNAMIC_DRAW);
-
-    gl::BindBufferBase(GL_UNIFORM_BUFFER, UBO::Camera::BINDING_POINT, m_CameraUBO);
-
-    // Link shaders uniform block to binding point
-    {
-        uint32_t DepthblockIndex = gl::GetUniformBlockIndex(m_Depth.Program->id(), "Camera");
-        gl::UniformBlockBinding(m_Depth.Program->id(), DepthblockIndex, UBO::Camera::BINDING_POINT);
-
-        uint32_t SceneblockIndex = gl::GetUniformBlockIndex(m_Scene.Program->id(), "Camera");
-        gl::UniformBlockBinding(m_Scene.Program->id(), SceneblockIndex, UBO::Camera::BINDING_POINT);
-
-        uint32_t SkyBoxblockIndex = gl::GetUniformBlockIndex(m_SkyBox.Program->id(), "Camera");
-        gl::UniformBlockBinding(m_SkyBox.Program->id(), SkyBoxblockIndex, UBO::Camera::BINDING_POINT);
-    }
+    ShaderProgram::create_ubo("Camera", sizeof(UBO::Camera));
+    m_Depth.Program->attach_ubo("Camera");
+    m_Scene.Program->attach_ubo("Camera");
+    m_SkyBox.Program->attach_ubo("Camera");
 
     // Prepeare Sun UBO --------------------------------------------------------------------------
-    gl::GenBuffers(1, &m_SunUBO);
-    gl::label_buffer(m_SunUBO, "Sun UBO");
-
-    gl::BindBuffer(GL_UNIFORM_BUFFER, m_SunUBO);
-
-    gl::BufferData(GL_UNIFORM_BUFFER, sizeof(UBO::SunLight), nullptr, GL_DYNAMIC_DRAW);
-
-    gl::BindBufferBase(GL_UNIFORM_BUFFER, UBO::SunLight::BINDING_POINT, m_SunUBO);
-
-    // Link shaders uniform block to binding point
-    {
-        uint32_t SceneblockIndex = gl::GetUniformBlockIndex(m_Scene.Program->id(), "SunLight");
-        gl::UniformBlockBinding(m_Scene.Program->id(), SceneblockIndex, UBO::SunLight::BINDING_POINT);
-    }
+    ShaderProgram::create_ubo("SunLight", sizeof(UBO::SunLight));
+    m_Scene.Program->attach_ubo("SunLight");
+    
+    // Prepeare Globle UBO --------------------------------------------------------------------------
+    ShaderProgram::create_ubo("Globle", sizeof(UBO::Globle));
+    m_Text.Program->attach_ubo("Globle");
 }
 
 auto OpenGLRenderer::render(const Scene& scene) const -> void
@@ -149,8 +136,7 @@ auto OpenGLRenderer::render(const Scene& scene) const -> void
             .Position = cam.position()
         };
 
-        gl::BindBuffer(GL_UNIFORM_BUFFER, m_CameraUBO);
-        gl::BufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(data), &data);
+        ShaderProgram::set_ubo("Camera", sizeof(UBO::Camera), &data);
     }
 
     {
@@ -175,8 +161,18 @@ auto OpenGLRenderer::render(const Scene& scene) const -> void
             .Ambient = emath::vec3(0.4f)
         };
 
-        gl::BindBuffer(GL_UNIFORM_BUFFER, m_SunUBO);
-        gl::BufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(data), &data);
+        ShaderProgram::set_ubo("SunLight", sizeof(UBO::SunLight), &data);
+    }
+
+    {
+        // Uploading Globle UBO
+        UBO::Globle data {
+            .ScreenResolution = emath::uvec2(m_GApi.window().dims().first, m_GApi.window().dims().second),
+            .Frame = m_Frame,
+            .Flags = 0
+        };
+
+        ShaderProgram::set_ubo("Globle", sizeof(UBO::Globle), &data);
     }
 
     gl::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
@@ -195,6 +191,8 @@ auto OpenGLRenderer::render(const Scene& scene) const -> void
     text_pass();
     gl::DepthMask(GL_TRUE);
     gl::DepthFunc(GL_LESS);
+
+    m_Frame++;
 }
 
 auto OpenGLRenderer::depthpre_pass(const Scene& scene) const -> void
@@ -312,20 +310,7 @@ auto OpenGLRenderer::text_pass() const -> void {
     m_Text.Program->use();
     m_Stats.pipeline_switch++;
 
-    uint32_t u_ScreenSize = uint32_t(width) | (uint32_t(height) << 16);
-    m_Text.Program->set_uniform("u_ScreenSize", u_ScreenSize);
-
-    auto r = uint8_t(std::clamp(Text::DEFAULT_FONT_COLOR.x, 0.0f, 1.0f) * 255.0f + 0.5f);
-    auto g = uint8_t(std::clamp(Text::DEFAULT_FONT_COLOR.y, 0.0f, 1.0f) * 255.0f + 0.5f);
-    auto b = uint8_t(std::clamp(Text::DEFAULT_FONT_COLOR.z, 0.0f, 1.0f) * 255.0f + 0.5f);
-
-    auto color =
-        (uint32_t(r)      ) |
-        (uint32_t(g) << 8 ) |
-        (uint32_t(b) << 16) |
-        (uint32_t(255) << 24);
-
-    m_Text.Program->set_uniform("u_Color", color);
+    m_Text.Program->set_uniform("u_Color", Text::DEFAULT_FONT_COLOR);
 
     gl::ActiveTexture(GL_TEXTURE0);
     gl::BindTexture(GL_TEXTURE_2D, m_Text.Atlas);
