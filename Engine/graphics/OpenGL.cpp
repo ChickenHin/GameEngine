@@ -10,15 +10,7 @@
 #include <unordered_map>
 
 #define PACK(x, y) ((uint32_t(x) << 16) | (uint32_t(y) & 0xFFFF))
-
-auto get_info(uint32_t name) -> int32_t
-{
-    int32_t r = 0;
-    gl::GetIntegerv(name, &r);
-    return r;
-}
-
-#define gl_info(name) logg::info(#name" : {}", get_info(name))
+#define gl_info(name) logg::info(#name" : {}", gl::get_intv(name))
 
 OpenGL::OpenGL([[maybe_unused]] const CWindow& window)
     : m_Window(window)
@@ -74,12 +66,14 @@ OpenGL::OpenGL([[maybe_unused]] const CWindow& window)
     logg::info("===================================[Plt Extention]=========================================");
     logg::info(m_Window.platform_extensions());
     logg::info("===================================[Metrics]==========================================");
-    
+
     gl_info(GL_MAX_TEXTURE_SIZE);
     gl_info(GL_MAX_3D_TEXTURE_SIZE);
     gl_info(GL_MAX_CUBE_MAP_TEXTURE_SIZE);
     gl_info(GL_MAX_ARRAY_TEXTURE_LAYERS);
     gl_info(GL_MAX_TEXTURE_IMAGE_UNITS);
+    gl_info(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS);
+    gl_info(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
     gl_info(GL_MAX_VERTEX_UNIFORM_COMPONENTS);
     gl_info(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS);
     gl_info(GL_MAX_UNIFORM_BLOCK_SIZE);
@@ -324,4 +318,25 @@ auto gl::label_program(uint32_t id, const char* name) -> void
     #endif
 
     ObjectLabel(GL_PROGRAM, id, -1, name);
+}
+
+auto gl::get_boolv (GLenum pname) -> bool
+{
+    uint8_t r{};
+    gl::GetBooleanv(pname, &r);
+    return r;
+}
+
+auto gl::get_floatv (GLenum pname) -> float
+{
+    float r{};
+    gl::GetFloatv(pname, &r);
+    return r;
+}
+
+auto gl::get_intv (GLenum pname) -> int32_t
+{
+    int32_t r{};
+    gl::GetIntegerv(pname, &r);
+    return r;
 }

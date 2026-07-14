@@ -158,6 +158,10 @@ namespace gl {
     auto label_shader(GLuint id, const char* name) -> void;
     auto label_program(GLuint id, const char* name) -> void;
 
+    auto get_boolv (GLenum pname) -> bool;
+    auto get_floatv (GLenum pname) -> float;
+    auto get_intv (GLenum pname) -> int32_t;
+
 } // namespace gl
 
 // im assuming Gl types are the same as these types if any assert fail . comment it and try to see maybe will work normaly or UB
@@ -166,6 +170,7 @@ static_assert(std::is_same_v<GLuint, uint32_t>);
 static_assert(std::is_same_v<GLenum, uint32_t>);
 static_assert(std::is_same_v<GLsizei, int32_t>);
 static_assert(std::is_same_v<GLchar, char>);
+static_assert(std::is_same_v<GLboolean, unsigned char>);
 static_assert(std::is_same_v<GLbyte, int8_t>);
 static_assert(std::is_same_v<GLubyte, uint8_t>);
 static_assert(std::is_same_v<GLfloat, float>);
