@@ -15,10 +15,10 @@ namespace {
 constexpr auto to_string(Texture::Type type) -> const char*
 {
   switch(type){
-    case Texture::Type::Texture2D: return "Texture2D";
-    case Texture::Type::Texture3D: return "Texture3D";
-    case Texture::Type::Texture2DArray: return "Texture2DArray";
-    case Texture::Type::TextureCubeMap: return "TextureCubeMap";
+    case Texture::Type::_2D: return "Texture2D";
+    case Texture::Type::_3D: return "Texture3D";
+    case Texture::Type::_2DArray: return "Texture2DArray";
+    case Texture::Type::_CubeMap: return "TextureCubeMap";
     default: return "UNKNOWN";
   }
 }
@@ -26,10 +26,10 @@ constexpr auto to_string(Texture::Type type) -> const char*
 constexpr auto to_gl(Texture::Type type) -> uint32_t
 {
   switch(type){
-    case Texture::Type::Texture2D: return GL_TEXTURE_2D;
-    case Texture::Type::Texture3D: return GL_TEXTURE_3D;
-    case Texture::Type::Texture2DArray: return GL_TEXTURE_2D_ARRAY;
-    case Texture::Type::TextureCubeMap: return GL_TEXTURE_CUBE_MAP;
+    case Texture::Type::_2D: return GL_TEXTURE_2D;
+    case Texture::Type::_3D: return GL_TEXTURE_3D;
+    case Texture::Type::_2DArray: return GL_TEXTURE_2D_ARRAY;
+    case Texture::Type::_CubeMap: return GL_TEXTURE_CUBE_MAP;
     default: throw 1;
   }
 
@@ -47,10 +47,10 @@ Texture::Texture(const char* name, Type type)
     gl::BindTexture(gl_type, m_Id);
 
     switch(m_Type){
-        case Texture::Type::Texture2D: make_texture_Texture2D(name); break;
-        case Texture::Type::Texture3D: make_texture_Texture3D(name); break;
-        case Texture::Type::Texture2DArray: make_texture_Texture2DArray(name); break;
-        case Texture::Type::TextureCubeMap: make_texture_TextureCubeMap(name); break;
+        case Texture::Type::_2D: make_texture_Texture2D(name); break;
+        case Texture::Type::_3D: make_texture_Texture3D(name); break;
+        case Texture::Type::_2DArray: make_texture_Texture2DArray(name); break;
+        case Texture::Type::_CubeMap: make_texture_TextureCubeMap(name); break;
         default: throw "texture type not supported";
     }
 
@@ -117,15 +117,14 @@ auto Texture::type_name() const -> std::string
     return to_string(m_Type);
 }
 
-
 auto Texture::texture_2d(const char* name) -> std::shared_ptr<Texture>
 {
-    return std::make_shared<Texture>(name, Texture::Type::Texture2D);
+    return std::make_shared<Texture>(name, Texture::Type::_2D);
 }
 
 auto Texture::texture_cubemap(const char* name) -> std::shared_ptr<Texture>
 {
-    return std::make_shared<Texture>(name, Texture::Type::TextureCubeMap);
+    return std::make_shared<Texture>(name, Texture::Type::_CubeMap);
 }
 
 auto Texture::storage2d(const auto *data, uint32_t type, int32_t width, int32_t height, int32_t intformat, uint32_t format) -> void
@@ -227,10 +226,12 @@ auto Texture::make_texture_TextureCubeMap(const char* name) -> void
 
 auto Texture::make_texture_Texture3D(const char* name) -> void
 {
+    (void)name;
     throw "unimplemended";
 }
 
 auto Texture::make_texture_Texture2DArray(const char* name) -> void
 {
+    (void)name;
     throw "unimplemended";
 }

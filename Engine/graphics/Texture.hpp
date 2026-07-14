@@ -14,10 +14,10 @@ public:
   friend struct std::formatter<Texture>;
 
   enum class Type {
-    Texture2D,
-    TextureCubeMap,
-    Texture3D,
-    Texture2DArray
+    _2D,
+    _CubeMap,
+    _3D,
+    _2DArray
   };
 
   Texture(const char* name, Type type);
