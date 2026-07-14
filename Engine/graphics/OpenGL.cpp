@@ -116,7 +116,7 @@ auto OpenGL::is_current() const -> bool
     return gl::GetCurrentContext() == m_Context;
 }
 
-static auto APIENTRY messgae_callback_func(uint32_t source, uint32_t type, uint32_t id, uint32_t severity, int32_t, const char* message, const void *) -> void
+static auto APIENTRY message_callback(uint32_t source, uint32_t type, uint32_t id, uint32_t severity, int32_t, const char* message, const void *) -> void
 {
     std::unordered_map<uint32_t, const char*> m {
         {GL_DEBUG_SOURCE_API, "GL_DEBUG_SOURCE_API"},
@@ -147,7 +147,6 @@ static auto APIENTRY messgae_callback_func(uint32_t source, uint32_t type, uint3
     logg::error("source : {}, type: {}, id: {}, severity: {}, msg: {}.", m[source], m[type], id, m[severity], message);
 }
 
-
 auto OpenGL::enable_debug() const -> void
 {
     // Enable Opengl debug
@@ -160,7 +159,7 @@ auto OpenGL::enable_debug() const -> void
         gl::Enable(GL_DEBUG_OUTPUT);
         gl::Enable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
-        glDebugMessageCallback_ext(messgae_callback_func, nullptr);
+        glDebugMessageCallback_ext(message_callback, nullptr);
 
         #if defined(GL_DEBUG_TYPE_PUSH_GROUP) && defined(GL_DEBUG_TYPE_POP_GROUP)
         glDebugMessageControl_ext(
@@ -187,7 +186,7 @@ auto OpenGL::enable_debug() const -> void
         GET_GLEXT_FUNCTION_THROW(glDebugMessageControlARB);
         gl::Enable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
 
-        glDebugMessageCallbackARB_ext(messgae_callback_func, nullptr);
+        glDebugMessageCallbackARB_ext(message_callback, nullptr);
 
         #if defined(GL_DEBUG_TYPE_PUSH_GROUP) && defined(GL_DEBUG_TYPE_POP_GROUP)
         glDebugMessageControlARB_ext(

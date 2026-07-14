@@ -6,11 +6,6 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 #include <stb/stb_truetype.h>
 
-#if defined(min) || defined(max)
-#undef min
-#undef max
-#endif
-
 static_assert(sizeof(UiFont::bakedchar) == sizeof(stbtt_bakedchar));
 
 UiFont::UiFont(const char *name)

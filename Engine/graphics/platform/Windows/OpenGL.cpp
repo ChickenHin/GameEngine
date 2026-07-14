@@ -7,9 +7,6 @@
 
 #include <vector>
 
-#undef min
-#undef max
-
 extern const TCHAR* window_class_name();
 
 OpenGL::~OpenGL()

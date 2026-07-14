@@ -24,11 +24,6 @@
 #include <cmath>
 #include <cstddef>
 
-#if defined(min) || defined(max)
-#undef min
-#undef max
-#endif
-
 namespace UBO {
 
     struct Camera

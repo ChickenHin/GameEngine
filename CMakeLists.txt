@@ -24,6 +24,9 @@ if(WIN32)
     if($<CONFIG:Release>)
         set(CMAKE_WIN32_EXECUTABLE ON)
     endif()
+    add_definitions(-DNOMINMAX)
+else()
+    add_definitions(-DAPIENTRY)
 endif()
 
 ####################################################################################################
