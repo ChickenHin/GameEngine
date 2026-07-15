@@ -28,7 +28,11 @@ Shader::Shader(const char* shader, Type type)
 
     auto glsl_header = std::format(
         "#version {}{}0 {}\n"
-        "precision mediump float;\n",
+        "precision mediump float;\n"
+        "precision mediump int;\n"
+        "precision mediump sampler2D;\n"
+        "precision mediump sampler3D;\n"
+        "precision mediump samplerCube;\n",
         OpenGL::MIN_REQUIRED_MAJOR_VERSION, OpenGL::MIN_REQUIRED_MINOR_VERSION, 
         OpenGL::api == OpenGL::API::ES ? "es" : "core"
     );
