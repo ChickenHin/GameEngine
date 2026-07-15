@@ -26,7 +26,7 @@ if(WIN32)
     endif()
     add_definitions(-DNOMINMAX)
 else()
-    add_definitions(-DAPIENTRY)
+    add_definitions(-DAPIENTRY=)
 endif()
 
 ####################################################################################################
