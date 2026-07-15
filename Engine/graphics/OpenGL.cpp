@@ -139,7 +139,19 @@ auto OpenGL::is_current() const -> bool
             {GL_DEBUG_SEVERITY_LOW, "GL_DEBUG_SEVERITY_LOW"},
             {GL_DEBUG_SEVERITY_NOTIFICATION, "GL_DEBUG_SEVERITY_NOTIFICATION"}
         };
-        logg::error("source : {}, type: {}, id: {}, severity: {}, msg: {}.", m[source], m[type], id, m[severity], message);
+
+        auto msg = std::format("OpenGL: source : {}, type: {}, id: {}, msg: {}", m[source], m[type], id, message);
+        switch(severity)
+        {
+            case GL_DEBUG_SEVERITY_HIGH:
+                logg::error(msg);
+                break;
+            case GL_DEBUG_SEVERITY_MEDIUM:
+            case GL_DEBUG_SEVERITY_LOW:
+            case GL_DEBUG_SEVERITY_NOTIFICATION:
+                logg::warn(msg);
+                break;
+        }
     };
 #endif
 

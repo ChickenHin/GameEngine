@@ -52,6 +52,7 @@ public:
     auto set_uniform(const std::string &name, const emath::mat2 &value) const -> void;
     auto set_uniform(const std::string &name, const emath::mat3 &value) const -> void;
     auto set_uniform(const std::string &name, const emath::mat4 &value) const -> void;
+    auto set_uniform(const std::string& name, const int32_t* value, int32_t count) const -> void;
     auto set_uniform(const std::string& name, const emath::mat4* value, int32_t count) const -> void;
 
     static auto create_ubo(const char* name, size_t size, void* data = nullptr) -> void;

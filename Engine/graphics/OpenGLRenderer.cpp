@@ -24,6 +24,7 @@
 #include <cstring>
 #include <cmath>
 #include <cstddef>
+#include <numeric>
 
 namespace UBO {
 
@@ -92,9 +93,8 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
     prepare_text_buffers();
 
     gl::GenTextures(1, &m_Text.Atlas);
-    gl::label_texture(m_Text.Atlas, "Text Atlas");
-
     gl::BindTexture(GL_TEXTURE_2D, m_Text.Atlas);
+    gl::label_texture(m_Text.Atlas, "Text Atlas");
 
     auto [w, h] = m_Text.Text.atlas_dims();
     std::vector<uint8_t> bitmap = m_Text.Text.bitmap(w,h);
@@ -119,7 +119,17 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
     ShaderProgram::create_ubo("Globle", sizeof(UBO::Globle));
     m_Text.Program->attach_ubo("Globle");
 
-    BATCH_SIZE = gl::get_intv(GL_MAX_TEXTURE_IMAGE_UNITS);
+    {
+        // set texture uints
+        m_Scene.Program->use();
+        BATCH_SIZE = gl::get_intv(GL_MAX_TEXTURE_IMAGE_UNITS);
+        static const std::vector<int32_t> units = []{
+            std::vector<int32_t> a(BATCH_SIZE);
+            std::iota(a.begin(), a.end(), 0);
+            return a;
+        }();
+        m_Scene.Program->set_uniform("uDiffuseMaps[0]", units.data(), units.size());
+    }
 }
 
 auto OpenGLRenderer::render(const Scene& scene) const -> void
@@ -183,7 +193,9 @@ auto OpenGLRenderer::render(const Scene& scene) const -> void
     scene_pass(scene);
     gl::DepthMask(GL_FALSE);
     gl::DepthFunc(GL_LEQUAL);
+    gl::Disable(GL_BLEND);
     skybox_pass();
+    gl::Enable(GL_BLEND);
     gl::DepthMask(GL_FALSE);
     gl::DepthFunc(GL_ALWAYS);
     text_pass();
@@ -243,6 +255,9 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
     m_Stats.pipeline_switch++;
 
     Mesh* currentMesh = nullptr;
+    
+    std::vector<emath::mat4> modelMatrices;
+    modelMatrices.reserve(BATCH_SIZE);
 
     for (auto group : Entities)
     {
@@ -259,9 +274,6 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
             size_t instanceCount = std::ranges::distance(batch);
             if (instanceCount == 0) continue;
 
-            std::vector<emath::mat4> modelMatrices;
-            modelMatrices.reserve(instanceCount);
-
             for (int32_t texUnit = 0; const GameObject& obj : batch)
             {
                 modelMatrices.push_back(obj.model());
@@ -271,15 +283,6 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
                 texUnit++;
             }
             m_Stats.texture_switch++;
-
-            std::vector<int32_t> units(BATCH_SIZE);
-            for (int32_t i = 0; i < BATCH_SIZE; ++i) units[i] = i;
-
-            gl::Uniform1iv(
-                gl::GetUniformLocation(m_Scene.Program->id(), "uDiffuseMaps"),
-                units.size(),
-                units.data()
-            );
 
             m_Scene.Program->set_uniform("uModels[0]", modelMatrices.data(), int32_t(instanceCount));
 
@@ -294,6 +297,7 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
             m_Stats.draw_call++;
             m_Stats.vertices += mesh->vertex_size() * instanceCount;
             m_Stats.indices  += mesh->indices_size() * instanceCount;
+            modelMatrices.clear();
         }
     }
 
@@ -387,16 +391,14 @@ auto OpenGLRenderer::stats() const -> RenderStats
 auto OpenGLRenderer::prepare_text_buffers() -> void {
     // Generate and bind VAO
     gl::GenVertexArrays(1, &m_Text.VAO);
-    gl::label_vertex_array(m_Text.VAO, "Text VAO");
-
     gl::BindVertexArray(m_Text.VAO);
+    gl::label_vertex_array(m_Text.VAO, "Text VAO");
 
     // Dynamic instance VBO
     gl::GenBuffers(1, &m_Text.VBO);
-    gl::label_buffer(m_Text.VBO, "Text VBO");
-
     gl::BindBuffer(GL_ARRAY_BUFFER, m_Text.VBO);
     gl::BufferData(GL_ARRAY_BUFFER, TEXT_BATCH_SIZE * sizeof(Text::Glyph), nullptr, GL_STREAM_DRAW);
+    gl::label_buffer(m_Text.VBO, "Text VBO");
 
     // Offset (2 * 4 byte)
     gl::EnableVertexAttribArray(0);
