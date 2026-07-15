@@ -42,4 +42,5 @@ public:
     virtual auto set_mode(DrawMode mode) -> void = 0;
     virtual auto clear_screen(uint32_t buffersmask) const -> void  = 0;
     virtual auto stats() const -> RenderStats = 0;
+    virtual auto batch_size() const -> int32_t = 0;
 };

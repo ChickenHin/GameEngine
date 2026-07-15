@@ -32,9 +32,11 @@ Shader::Shader(const char* shader, Type type)
         "precision mediump int;\n"
         "precision mediump sampler2D;\n"
         "precision mediump sampler3D;\n"
-        "precision mediump samplerCube;\n",
+        "precision mediump samplerCube;\n"
+        "#define MAX_INSTANCES {}\n",
         OpenGL::MIN_REQUIRED_MAJOR_VERSION, OpenGL::MIN_REQUIRED_MINOR_VERSION, 
-        OpenGL::api == OpenGL::API::ES ? "es" : "core"
+        OpenGL::api == OpenGL::API::ES ? "es" : "core",
+        gl::get_intv(GL_MAX_TEXTURE_IMAGE_UNITS)
     );
 
     auto glsl_l = res::get("res/shaders/common.glsl");

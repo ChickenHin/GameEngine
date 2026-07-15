@@ -22,6 +22,7 @@ public:
     auto set_mode(DrawMode mode) -> void override;
     auto clear_screen(uint32_t buffersmask) const -> void  override;
     auto stats() const -> RenderStats override;
+    auto batch_size() const -> int32_t override;
 
     constexpr static size_t TEXT_BATCH_SIZE = 4096;
 
@@ -57,4 +58,6 @@ private:
         std::shared_ptr<class ShaderProgram> Program;
         uint32_t VAO, VBO, Atlas;
     } m_Text;
+
+    inline static int32_t BATCH_SIZE;
 };

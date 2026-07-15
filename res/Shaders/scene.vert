@@ -5,6 +5,7 @@ layout (location = 2) in vec2 aUv;
 out vec3 Normal;
 out vec3 WorldPos;
 out vec2 Uv;
+flat out int InstanceID;
 
 layout(std140) uniform Camera
 {
@@ -13,9 +14,12 @@ layout(std140) uniform Camera
     vec3 Position;
 } Cam;
 
-uniform mat4 Model;
+uniform mat4 uModels[MAX_INSTANCES];
 
 void main() {
+    InstanceID = gl_InstanceID;
+    mat4 Model = uModels[InstanceID];
+
     vec4 worldPos_ = Model * vec4(aPosition, 1.0);
     WorldPos = worldPos_.xyz;
 

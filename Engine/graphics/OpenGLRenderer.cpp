@@ -19,6 +19,7 @@
 #include <ui/Text.hpp>
 
 #include <algorithm>
+#include <ranges>
 #include <chrono>
 #include <cstring>
 #include <cmath>
@@ -117,6 +118,8 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
     // Prepeare Globle UBO --------------------------------------------------------------------------
     ShaderProgram::create_ubo("Globle", sizeof(UBO::Globle));
     m_Text.Program->attach_ubo("Globle");
+
+    BATCH_SIZE = gl::get_intv(GL_MAX_TEXTURE_IMAGE_UNITS);
 }
 
 auto OpenGLRenderer::render(const Scene& scene) const -> void
@@ -229,49 +232,71 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
 
     m_Stats.reset();
 
+    auto Entities = scene.entities() | std::views::chunk_by(
+        [](const GameObject& a, const GameObject& b)
+        {
+            return a.mesh() == b.mesh();
+        }
+    );
+
     m_Scene.Program->use();
     m_Stats.pipeline_switch++;
 
-    //Drwaing
     Mesh* currentMesh = nullptr;
-    Material* currentMaterial = nullptr;
 
-    for(const auto& obj : scene.entities()) {
-        auto mesh = obj.mesh().get();
-        auto material = obj.material().get();
+    for (auto group : Entities)
+    {
+        const auto& firstObj = *group.begin();
+        Mesh* mesh = firstObj.mesh().get();
 
-        auto v_count = mesh->vertex_size();
-        auto i_count = mesh->indices_size();
-
-        m_Stats.vertices += v_count;
-        m_Stats.indices += i_count;
-
-        m_Scene.Program->set_uniform("Model", obj.model());
-
-        // Bind material only when it changes
-        if (currentMaterial != material)
-        {
-            currentMaterial = material;
-
-            // diffuse
-            gl::ActiveTexture(GL_TEXTURE0 + 0);
-            currentMaterial->diffuse()->bind();
-            m_Scene.Program->set_uniform("uDiffuseMap", 0);
-
-            m_Stats.texture_switch++;
-        }
-
-        // Bind mesh only when it changes
-        if (currentMesh != mesh)
-        {
+        if (currentMesh != mesh) {
             currentMesh = mesh;
             gl::BindVertexArray(currentMesh->VAO);
             m_Stats.mesh_switch++;
         }
 
-        gl::DrawElements(GL_TRIANGLES, int32_t(mesh->indices_size()), GL_UNSIGNED_SHORT, (void*)0);
-        m_Stats.draw_call++;
+        for (auto batch : group | std::views::chunk(BATCH_SIZE)){
+            size_t instanceCount = std::ranges::distance(batch);
+            if (instanceCount == 0) continue;
+
+            std::vector<emath::mat4> modelMatrices;
+            modelMatrices.reserve(instanceCount);
+
+            for (int32_t texUnit = 0; const GameObject& obj : batch)
+            {
+                modelMatrices.push_back(obj.model());
+
+                gl::ActiveTexture(GL_TEXTURE0 + texUnit);
+                obj.material()->diffuse()->bind();
+                texUnit++;
+            }
+            m_Stats.texture_switch++;
+
+            std::vector<int32_t> units(BATCH_SIZE);
+            for (int32_t i = 0; i < BATCH_SIZE; ++i) units[i] = i;
+
+            gl::Uniform1iv(
+                gl::GetUniformLocation(m_Scene.Program->id(), "uDiffuseMaps"),
+                units.size(),
+                units.data()
+            );
+
+            m_Scene.Program->set_uniform("uModels[0]", modelMatrices.data(), int32_t(instanceCount));
+
+            gl::DrawElementsInstanced(
+                GL_TRIANGLES,
+                int32_t(mesh->indices_size()),
+                GL_UNSIGNED_SHORT,
+                (void*)0,
+                instanceCount
+            );
+
+            m_Stats.draw_call++;
+            m_Stats.vertices += mesh->vertex_size() * instanceCount;
+            m_Stats.indices  += mesh->indices_size() * instanceCount;
+        }
     }
+
     gl::pop_debug_group();
 }
 
@@ -415,9 +440,8 @@ auto  OpenGLRenderer::set_face_cull(bool v) const -> void
         gl::CullFace(GL_BACK);
     }  else gl::Disable(GL_CULL_FACE);
 }
-
-
     
-
-
-    
+auto OpenGLRenderer::batch_size() const -> int32_t
+{
+    return BATCH_SIZE;
+}

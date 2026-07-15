@@ -56,6 +56,7 @@ static auto func##_ext = [](){\
     FUNC_GL_X(GetProgramiv)\
     FUNC_GL_X(GetProgramInfoLog)\
     FUNC_GL_X(GetActiveUniform)\
+    FUNC_GL_X(Uniform1iv)\
     FUNC_GL_X(Uniform1i)\
     FUNC_GL_X(Uniform2i)\
     FUNC_GL_X(Uniform3i)\
