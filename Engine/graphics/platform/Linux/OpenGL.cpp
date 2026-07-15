@@ -14,7 +14,7 @@ static int32_t visualAttribs[] = {
     GLX_ALPHA_SIZE,     8,
     GLX_STENCIL_SIZE,   8,
     GLX_DEPTH_SIZE,     24,
-    0
+    GL_NONE
 };
 
 OpenGL::~OpenGL()
