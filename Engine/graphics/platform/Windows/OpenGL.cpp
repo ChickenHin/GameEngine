@@ -143,8 +143,13 @@ auto OpenGL::create_context() -> GL_CTX
         bool is_WGL_ARB_create_context_no_error = extensions.contains("WGL_ARB_create_context_no_error");
 
         int flags = WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
-        if constexpr (DEBUG) flags |= WGL_CONTEXT_DEBUG_BIT_ARB;
-        if (is_WGL_ARB_create_context_no_error && !DEBUG) flags |= WGL_CONTEXT_OPENGL_NO_ERROR_ARB;
+
+        if (DEBUG) {
+            flags |= WGL_CONTEXT_DEBUG_BIT_ARB;
+        } else {
+            if (is_WGL_ARB_create_context_no_error)
+                flags |= WGL_CONTEXT_OPENGL_NO_ERROR_ARB;
+        }
     
         std::vector<int> attribs;
 

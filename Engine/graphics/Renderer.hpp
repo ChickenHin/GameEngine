@@ -4,6 +4,8 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <unordered_map>
+#include <string>
 
 enum class DrawMode {
     Triangles = 0,
@@ -42,5 +44,6 @@ public:
     virtual auto set_mode(DrawMode mode) -> void = 0;
     virtual auto clear_screen(uint32_t buffersmask) const -> void  = 0;
     virtual auto stats() const -> RenderStats = 0;
+    virtual auto gpu_time_elapsed() const -> std::unordered_map<std::string, uint64_t>& = 0;
     virtual auto batch_size() const -> int32_t = 0;
 };

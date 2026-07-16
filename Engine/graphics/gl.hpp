@@ -141,6 +141,14 @@ static auto func##_ext = [](){\
     FUNC_GL_X(ColorMask)\
     FUNC_GL_X(Scissor)\
     FUNC_GL_X(GetActiveUniformsiv)\
+    FUNC_GL_X(GenQueries)\
+    FUNC_GL_X(DeleteQueries)\
+    FUNC_GL_X(IsQuery)\
+    FUNC_GL_X(BeginQuery)\
+    FUNC_GL_X(EndQuery)\
+    FUNC_GL_X(GetQueryiv)\
+    FUNC_GL_X(GetQueryObjectiv)\
+    FUNC_GL_X(GetQueryObjectuiv)\
     FUNC_GL_X(UnmapBuffer)\
     FUNC_GL_X(MapBufferRange)
 
@@ -159,6 +167,13 @@ namespace gl {
     auto label_shader(GLuint id, const char* name) -> void;
     auto label_program(GLuint id, const char* name) -> void;
 
+    auto get_query_object_i64(GLuint id, GLenum pname, GLint64* param) -> void;
+    auto get_query_object_ui64(GLuint id, GLenum pname, GLuint64* param) -> void;
+
+    auto get_query_time_elapsed(GLuint id, GLuint64* ns) -> void;
+    auto begin_query_time_elapsed(GLuint id) -> void;
+    auto end_query_time_elapsed() -> void;
+
     auto get_boolv (GLenum pname) -> bool;
     auto get_floatv (GLenum pname) -> float;
     auto get_intv (GLenum pname) -> int32_t;
@@ -170,6 +185,8 @@ static_assert(std::is_same_v<GLint, int32_t>);
 static_assert(std::is_same_v<GLuint, uint32_t>);
 static_assert(std::is_same_v<GLenum, uint32_t>);
 static_assert(std::is_same_v<GLsizei, int32_t>);
+static_assert(std::is_same_v<GLuint64, uint64_t>);
+static_assert(std::is_same_v<GLint64, int64_t>);
 static_assert(std::is_same_v<GLchar, char>);
 static_assert(std::is_same_v<GLboolean, unsigned char>);
 static_assert(std::is_same_v<GLbyte, int8_t>);

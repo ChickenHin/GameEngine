@@ -9,8 +9,9 @@
 
 #include <utility>
 
-ShaderProgram::ShaderProgram(std::shared_ptr<Shader> vertex, std::shared_ptr<Shader> fragment)
+ShaderProgram::ShaderProgram(std::shared_ptr<Shader> vertex, std::shared_ptr<Shader> fragment, const char* name)
     : m_Id(gl::CreateProgram())
+    , m_Name(name ? name : "")
 {
     m_Shaders.reserve(2);
     m_Shaders.push_back(std::move(vertex));
@@ -34,14 +35,17 @@ ShaderProgram::ShaderProgram(std::shared_ptr<Shader> vertex, std::shared_ptr<Sha
 
     dump_attribs();
     dump_uniforms();
+
+    if(!m_Name.empty()) gl::label_program(m_Id, m_Name.c_str());
 }
 
-ShaderProgram::ShaderProgram(const char* vertex, const char* fragment)
-: ShaderProgram(Shader::new_vertex(vertex), Shader::new_fragment(fragment)) 
+ShaderProgram::ShaderProgram(const char* vertex, const char* fragment, const char* name)
+: ShaderProgram(Shader::new_vertex(vertex), Shader::new_fragment(fragment), name) 
 {}
 
 ShaderProgram::ShaderProgram(ShaderProgram&& other) noexcept
     : m_Id(std::exchange(other.m_Id, 0))
+    , m_Name(std::exchange(other.m_Name, {}))
     , m_Shaders(std::move(other.m_Shaders))
     , m_Attribs(std::move(other.m_Attribs))
     , m_Uniforms(std::move(other.m_Uniforms)) // dnt forget  to check if the id are the same in the new Programe
@@ -54,6 +58,7 @@ auto ShaderProgram::operator=(ShaderProgram&& other) noexcept -> ShaderProgram&
         gl::DeleteProgram(m_Id);
 
         m_Id = std::exchange(other.m_Id, 0);
+        m_Name = std::exchange(other.m_Name, {});
         m_Shaders = std::move(other.m_Shaders);
         m_Attribs = std::move(other.m_Attribs);
         m_Uniforms = std::move(other.m_Uniforms);
@@ -66,7 +71,7 @@ ShaderProgram::~ShaderProgram()
     gl::DeleteProgram(m_Id);
 }
 
-auto ShaderProgram::id() const noexcept -> uint32_t
+auto ShaderProgram::id() const -> uint32_t
 {
     return m_Id;
 }
@@ -79,6 +84,11 @@ auto ShaderProgram::use() const -> void
 auto ShaderProgram::link() const -> void
 {
     gl::LinkProgram(m_Id);
+}
+
+auto ShaderProgram::name() const -> std::string
+{
+    return m_Name;
 }
 
 auto ShaderProgram::uniform_location(const char *name) const -> uint32_t
@@ -222,17 +232,17 @@ auto ShaderProgram::current_program() -> uint32_t
     return static_cast<uint32_t>(prog);
 }
 
-auto ShaderProgram::uniforms() const noexcept -> const std::unordered_map<std::string, InternalType>&
+auto ShaderProgram::uniforms() const -> const std::unordered_map<std::string, InternalType>&
 {
     return m_Uniforms;
 }
 
-auto ShaderProgram::attribs() const noexcept -> const std::unordered_map<std::string, InternalType>&
+auto ShaderProgram::attribs() const -> const std::unordered_map<std::string, InternalType>&
 {
     return m_Attribs;
 }
 
-auto ShaderProgram::ubos() noexcept -> const std::unordered_map<std::string, uint32_t>&
+auto ShaderProgram::ubos() -> const std::unordered_map<std::string, uint32_t>&
 {
     return m_UBOs;
 }
@@ -564,4 +574,3 @@ auto ShaderProgram::set_ubo(const char* name, size_t size, void* data) -> void
     gl::BindBuffer(GL_UNIFORM_BUFFER, m_UBOs.at(name));
     gl::BufferSubData(GL_UNIFORM_BUFFER, 0, size, data);
 }
-

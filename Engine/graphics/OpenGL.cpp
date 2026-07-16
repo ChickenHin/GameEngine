@@ -354,3 +354,57 @@ auto gl::get_intv (GLenum pname) -> int32_t
     gl::GetIntegerv(pname, &r);
     return r;
 }
+
+auto gl::get_query_object_i64(GLuint id, GLenum pname, GLint64* param) -> void
+{
+    #ifdef CORE_GL
+        GET_GLEXT_FUNCTION_THROW(glGetQueryObjecti64v);
+        glGetQueryObjecti64v_ext(id, pname, param);
+    #else
+        if(gl::extensions().contains("GL_EXT_disjoint_timer_query")){
+            GET_GLEXT_FUNCTION_THROW(glGetQueryObjecti64vEXT);
+            glGetQueryObjecti64vEXT_ext(id, pname, param);
+        }
+    #endif
+}
+
+auto gl::get_query_object_ui64(GLuint id, GLenum pname, GLuint64* param) -> void
+{
+    #ifdef CORE_GL
+        GET_GLEXT_FUNCTION_THROW(glGetQueryObjectui64v);
+        glGetQueryObjectui64v_ext(id, pname, param);
+    #else
+        if(gl::extensions().contains("GL_EXT_disjoint_timer_query")){
+            GET_GLEXT_FUNCTION_THROW(glGetQueryObjectui64vEXT);
+            glGetQueryObjectui64vEXT_ext(id, pname, param);
+        }
+    #endif
+}
+
+#if defined(GL_TIME_ELAPSED)
+#define TIME_ELAPSED GL_TIME_ELAPSED
+#elif defined(GL_TIME_ELAPSED_EXT)
+#define TIME_ELAPSED GL_TIME_ELAPSED_EXT
+#else
+#define TIME_ELAPSED 0
+#endif
+
+auto gl::get_query_time_elapsed(GLuint id, GLuint64* ns) -> void
+{
+    GLuint available{};
+    gl::GetQueryObjectuiv(id, GL_QUERY_RESULT_AVAILABLE, &available);
+
+    if (available) {
+        gl::get_query_object_ui64(id, GL_QUERY_RESULT, ns);
+    }
+}
+
+auto gl::begin_query_time_elapsed(GLuint id) -> void
+{
+    gl::BeginQuery(TIME_ELAPSED, id);
+}
+
+auto gl::end_query_time_elapsed() -> void
+{
+    gl::EndQuery(TIME_ELAPSED);
+}

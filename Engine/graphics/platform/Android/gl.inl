@@ -6,7 +6,7 @@
 #include <EGL/eglext.h>
 
 #include <GLES3/gl3.h>
-#include <GLES3/gl3ext.h>
+#include <GLES3/gl2ext.h>
 
 #include <android/native_window.h>
 

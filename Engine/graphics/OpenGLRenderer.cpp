@@ -60,29 +60,32 @@ namespace UBO {
 OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
     : m_GApi(ctx)
     , m_DrawMode(DrawMode::Triangles)
-    , m_Frame(0)
     , m_Depth {
-        std::make_shared<ShaderProgram>("res/shaders/depth.vert", "res/shaders/depth.frag")
+        std::make_shared<ShaderProgram>("res/shaders/depth.vert", "res/shaders/depth.frag", "Depth pre-pass")
     }
     , m_Scene {
-        std::make_shared<ShaderProgram>("res/shaders/scene.vert", "res/shaders/scene.frag")
+        std::make_shared<ShaderProgram>("res/shaders/scene.vert", "res/shaders/scene.frag", "Scene"), 0
     }
     , m_SkyBox {
-        std::make_shared<ShaderProgram>("res/shaders/skybox.vert", "res/shaders/skybox.frag"),
-        Texture::texture_cubemap("res/textures/forest.jpg")
+        std::make_shared<ShaderProgram>("res/shaders/skybox.vert", "res/shaders/skybox.frag", "SkyBox"),
+        Texture::texture_cubemap("res/textures/forest.jpg"), 0
     }
     , m_Text {
         text,
-        std::make_shared<ShaderProgram>("res/shaders/text.vert", "res/shaders/text.frag"),
-        0, 0, 0
+        std::make_shared<ShaderProgram>("res/shaders/text.vert", "res/shaders/text.frag", "Text"),
+        0, 0, 0, 0
+    }
+    , m_Stats()
+    , m_Frame(0)
+    , m_Gpu_time_elaped {
+        {m_Scene.Program->name(), 0},
+        {m_SkyBox.Program->name(), 0},
+        {m_Text.Program->name(), 0}
     }
 {
-    {
-        gl::label_program(m_Depth.Program->id(), "Depth pre-pass");
-        gl::label_program(m_Scene.Program->id(), "Scene");
-        gl::label_program(m_SkyBox.Program->id(), "SkyBox");
-        gl::label_program(m_Text.Program->id(), "Text");
-    }
+    gl::GenQueries(1, &m_Scene.time_elapsed);
+    gl::GenQueries(1, &m_SkyBox.time_elapsed);
+    gl::GenQueries(1, &m_Text.time_elapsed);
 
     set_depth(true);
     set_stencil(true);
@@ -188,19 +191,35 @@ auto OpenGLRenderer::render(const Scene& scene) const -> void
     // gl::DepthMask(GL_TRUE);
     // gl::DepthFunc(GL_LESS);
     // depthpre_pass(scene);
-    // gl::DepthMask(GL_FALSE);
-    // gl::DepthFunc(GL_LEQUAL);
-    scene_pass(scene);
-    gl::DepthMask(GL_FALSE);
-    gl::DepthFunc(GL_LEQUAL);
-    gl::Disable(GL_BLEND);
-    skybox_pass();
-    gl::Enable(GL_BLEND);
-    gl::DepthMask(GL_FALSE);
-    gl::DepthFunc(GL_ALWAYS);
-    text_pass();
+    {
+        gl::begin_query_time_elapsed(m_Scene.time_elapsed);
+        // gl::DepthMask(GL_FALSE);
+        // gl::DepthFunc(GL_LEQUAL);
+        scene_pass(scene);
+        gl::end_query_time_elapsed();
+    }
+    {
+        gl::begin_query_time_elapsed(m_SkyBox.time_elapsed);
+        gl::DepthMask(GL_FALSE);
+        gl::DepthFunc(GL_LEQUAL);
+        gl::Disable(GL_BLEND);
+        skybox_pass();
+        gl::end_query_time_elapsed();
+    }
+    {
+        gl::begin_query_time_elapsed(m_Text.time_elapsed);
+        gl::Enable(GL_BLEND);
+        gl::DepthMask(GL_FALSE);
+        gl::DepthFunc(GL_ALWAYS);
+        text_pass();
+        gl::end_query_time_elapsed();
+    }
     gl::DepthMask(GL_TRUE);
     gl::DepthFunc(GL_LESS);
+
+    gl::get_query_time_elapsed(m_Scene.time_elapsed, &m_Gpu_time_elaped[m_Scene.Program->name()]);
+    gl::get_query_time_elapsed(m_SkyBox.time_elapsed, &m_Gpu_time_elaped[m_SkyBox.Program->name()]);
+    gl::get_query_time_elapsed(m_Text.time_elapsed, &m_Gpu_time_elaped[m_Text.Program->name()]);
 
     m_Frame++;
 }
@@ -442,8 +461,13 @@ auto  OpenGLRenderer::set_face_cull(bool v) const -> void
         gl::CullFace(GL_BACK);
     }  else gl::Disable(GL_CULL_FACE);
 }
-    
+
 auto OpenGLRenderer::batch_size() const -> int32_t
 {
     return BATCH_SIZE;
+}
+
+auto OpenGLRenderer::gpu_time_elapsed() const -> std::unordered_map<std::string, uint64_t>&
+{
+    return m_Gpu_time_elaped;
 }

@@ -62,6 +62,19 @@ auto APP::frame() -> void
         UiText.draw(std::format("Draw Call   : {}", Renderer->stats().draw_call));
         UiText.draw(std::format("Vertices    : {}", Renderer->stats().vertices));
         UiText.draw(std::format("Indices     : {} ({} tri)", Renderer->stats().indices, Renderer->stats().indices/3));
+
+        // Gpu Time
+        {
+            std::string elp_time = "Time Elapsed:\n";
+            float totale_elp_time{};
+            for(auto& [n, v] : Renderer->gpu_time_elapsed()){
+                float ms = static_cast<float>(v) / 1'000'000.0f;
+                elp_time += std::format("\t{} : {:.4f} ms\n", n, ms);
+                totale_elp_time += ms;
+            }
+            elp_time += std::format("\ttotale: [{:.4f} ms]", totale_elp_time);
+            UiText.draw(elp_time);
+        }
     }
 
     Game->update(game_dt);

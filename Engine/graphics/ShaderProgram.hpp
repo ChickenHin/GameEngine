@@ -15,8 +15,8 @@ public:
     using InternalType = std::tuple<uint32_t, uint32_t, int32_t>;
 
     friend struct std::formatter<ShaderProgram>;
-    ShaderProgram(std::shared_ptr<class Shader> vertex, std::shared_ptr<class Shader> fragment);
-    ShaderProgram(const char* vertex, const char* fragment);
+    ShaderProgram(std::shared_ptr<class Shader> vertex, std::shared_ptr<class Shader> fragment, const char* name = nullptr);
+    ShaderProgram(const char* vertex, const char* fragment, const char* name = nullptr);
     
     // ShaderProgram(const ShaderProgram& other);
     ShaderProgram(ShaderProgram&& other) noexcept;
@@ -24,15 +24,16 @@ public:
     
     ~ShaderProgram();
 
-    auto id() const noexcept -> uint32_t ;
+    auto id() const -> uint32_t ;
+    auto name() const -> std::string;
     auto use() const -> void ;
     auto uniform_count() const                  -> int32_t ;
     auto attribs_count() const                  -> int32_t ;
     auto uniform_location(const char*) const -> uint32_t;
     auto attrib_location(const char*) const -> uint32_t;
-    auto attribs() const noexcept -> const std::unordered_map<std::string, InternalType>&;
-    auto uniforms() const noexcept -> const std::unordered_map<std::string, InternalType>&;
-    static auto ubos() noexcept -> const std::unordered_map<std::string, uint32_t>&;
+    auto attribs() const -> const std::unordered_map<std::string, InternalType>&;
+    auto uniforms() const -> const std::unordered_map<std::string, InternalType>&;
+    static auto ubos() -> const std::unordered_map<std::string, uint32_t>&;
 
     static auto current_program() -> uint32_t;
     static auto glsl_type_to_string(uint32_t type) -> const char*;
@@ -70,6 +71,7 @@ private:
 
 private:
     uint32_t m_Id;
+    std::string m_Name;
     std::vector<std::shared_ptr<class Shader>> m_Shaders;
     std::unordered_map<std::string, InternalType> m_Attribs;
     std::unordered_map<std::string, InternalType> m_Uniforms;
