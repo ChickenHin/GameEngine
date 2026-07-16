@@ -297,6 +297,7 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
             {
                 modelMatrices.push_back(obj.model());
 
+                // TODO instead of binding same texture to multiple slot why not see if batch can be drawed instanced or split by BATCH_SIZE (we need somehow to pass texture id)
                 gl::ActiveTexture(GL_TEXTURE0 + texUnit);
                 obj.material()->diffuse()->bind();
                 texUnit++;
