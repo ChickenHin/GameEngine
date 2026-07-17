@@ -117,7 +117,7 @@ auto Shader::check_compile_status() -> std::string
             buffer = new char[infologlength];
 
             gl::GetShaderInfoLog(m_Id, infologlength, nullptr, buffer);
-            gl::DeleteShader(m_Id);
+            // gl::DeleteShader(m_Id);
         }
     }
 

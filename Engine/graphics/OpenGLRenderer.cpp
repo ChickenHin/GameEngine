@@ -280,8 +280,8 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
 
     for (auto group : Entities)
     {
-        const auto& firstObj = *group.begin();
-        Mesh* mesh = firstObj.mesh().get();
+
+        Mesh* mesh = group.begin()->mesh().get();
 
         if (currentMesh != mesh) {
             currentMesh = mesh;
@@ -289,28 +289,32 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
             m_Stats.mesh_switch++;
         }
 
-        for (auto batch : group | std::views::chunk(BATCH_SIZE)){
-            size_t instanceCount = std::ranges::distance(batch);
-            if (instanceCount == 0) continue;
+        auto it = group.begin();
 
-            for (int32_t texUnit = 0; const GameObject& obj : batch)
+        while (it != group.end())
+        {
+            modelMatrices.clear();
+
+            int32_t instanceCount = 0;
+
+            for (int32_t texUnit = 0; texUnit < BATCH_SIZE && it != group.end(); ++texUnit, ++it)
             {
-                modelMatrices.push_back(obj.model());
+                modelMatrices.push_back(it->model());
 
                 // TODO instead of binding same texture to multiple slot why not see if batch can be drawed instanced or split by BATCH_SIZE (we need somehow to pass texture id)
                 gl::ActiveTexture(GL_TEXTURE0 + texUnit);
-                obj.material()->diffuse()->bind();
-                texUnit++;
-            }
-            m_Stats.texture_switch++;
+                it->material()->diffuse()->bind();
 
-            m_Scene.Program->set_uniform("uModels[0]", modelMatrices.data(), int32_t(instanceCount));
+                ++instanceCount;
+            }
+
+            m_Scene.Program->set_uniform("uModels[0]", modelMatrices.data(), instanceCount);
 
             gl::DrawElementsInstanced(
                 GL_TRIANGLES,
                 int32_t(mesh->indices_size()),
                 GL_UNSIGNED_SHORT,
-                (void*)0,
+                nullptr,
                 instanceCount
             );
 

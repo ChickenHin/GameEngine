@@ -5,7 +5,7 @@
 
 #include <engine_export.h>
 
-#include <flat_set>
+#include <set>
 #include <span>
 #include <vector>
 #include <format>
@@ -17,7 +17,7 @@ struct GameObjectCompare
     return a.mesh() < b.mesh();
   }
 };
-using EntitiesVector = std::flat_multiset<GameObject, GameObjectCompare>;
+using EntitiesVector = std::multiset<GameObject, GameObjectCompare>;
 
 /// @brief  Scene has all the Entities to Render
 class ENGINE_EXPORT Scene
