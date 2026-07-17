@@ -75,16 +75,18 @@ function(target_pack target)
             COMMENT "Packaging & Signing APK. ndk: ${CMAKE_ANDROID_NDK_VERSION} sdk: ${ANDROID_PLATFORM_LEVEL} abi: ${ANDROID_ABI}"
         )
 
+        find_program(ADB adb PATHS "${ANDROID_SDK_ROOT}/platforms-tools" REQUIRED)
+
         add_custom_target(run
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 
-            COMMAND adb install -r signed.apk
+            COMMAND ${ADB} install -r signed.apk
 
-            COMMAND adb logcat -c
-            COMMAND adb shell am force-stop com.engine.Game
-            COMMAND adb shell monkey -p com.engine.Game 1
+            COMMAND ${ADB} logcat -c
+            COMMAND ${ADB} shell am force-stop com.engine.Game
+            COMMAND ${ADB} shell monkey -p com.engine.Game 1
 
-            COMMAND adb logcat -v threadtime -s ENGINE:V libc:F DEBUG:F DEBUGGERD:F tombstoned:F AndroidRuntime:E
+            COMMAND ${ADB} logcat -v threadtime -s ENGINE:V libc:F DEBUG:F DEBUGGERD:F tombstoned:F AndroidRuntime:E
 
             DEPENDS ${target}
 

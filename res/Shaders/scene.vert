@@ -24,9 +24,9 @@ void main() {
     WorldPos = worldPos_.xyz;
 
     mat3 normalMatrix = mat3(transpose(inverse(Model)));
-    Normal = normalMatrix ** aNormal;
+    Normal = normalMatrix * aNormal;
 
     Uv = aUv;
 
-    gl_Position = Cam.Projection * Cam.View ** worldPos_;
+    gl_Position = Cam.Projection * Cam.View * worldPos_;
 }
