@@ -26,7 +26,7 @@ ShaderProgram::ShaderProgram(std::shared_ptr<Shader> vertex, std::shared_ptr<Sha
     auto link_stat = check_link_status();
 
     if (!link_stat.empty())
-        logg::error("\n\t-> glsl link ({}): {}", m_Name, link_stat);
+        logg::error("\n\t-> glsl linker ({}): {}", m_Name, link_stat);
 
 
     for(const auto &shader : m_Shaders ){

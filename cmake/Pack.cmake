@@ -75,7 +75,7 @@ function(target_pack target)
             COMMENT "Packaging & Signing APK. ndk: ${CMAKE_ANDROID_NDK_VERSION} sdk: ${ANDROID_PLATFORM_LEVEL} abi: ${ANDROID_ABI}"
         )
 
-        add_custom_target(run_android
+        add_custom_target(run
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 
             COMMAND adb install -r signed.apk

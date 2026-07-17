@@ -62,29 +62,32 @@ Shader::Shader(const char* shader, Type type)
 
     auto comp_stat = check_compile_status();
     if (!comp_stat.empty()) {
-        if(vendor.contains("intel")){
-            std::string line = "0";
-            std::string msg;
+        std::string line = "0";
+        std::string msg;
 
-            for(auto r : comp_stat | std::views::split('\n')){
-                std::string l(r.begin(), r.end());
-                if(l.starts_with("ERROR:")){ // probably intel
-                    auto p1 = l.find(':');          // ERROR:
-                    auto p2 = l.find(':', p1 + 1);  // source id
-                    auto p3 = l.find(':', p2 + 1);  // line number
-                    
-                    line = l.substr(p2 + 1, p3 - p2 - 1);
-                    msg  = l.substr(p3 + 1);
-                }
-                if(!msg.empty())
-                    logg::error("\n\t-> glsl compile : {}:{} {}", shader, line, msg);
+        for(auto r : comp_stat | std::views::split('\n')){
+            std::string l(r.begin(), r.end());
+            if(vendor.contains("intel")){ // ERROR:soure:line:
+                auto p1 = l.find(':');          // ERROR:
+                auto p2 = l.find(':', p1 + 1);  // source id
+                auto p3 = l.find(':', p2 + 1);  // line number
 
-                line = "0";
-                msg.clear();
+                line = l.substr(p2 + 1, p3 - p2 - 1);
+                msg  = l.substr(p3 + 1);
+            } else if(vendor.contains("ARM")) { // :soure:line: L000x:
+                auto p2 = l.find(':',  1);  // source id
+                auto p3 = l.find(':', p2 + 1);  // line number
+
+                line = l.substr(p2 + 1, p3 - p2 - 1);
+                msg  = l.substr(p3 + 1);
             }
-        } else {
-            throw Exception("({}) glsl compile : {}", shader, comp_stat);
+
+            if(!msg.empty())
+                logg::error("\n\t-> glsl compiler : {}:{} {}", shader, line, msg);
         }
+
+        line = "0";
+        msg.clear();
     }
 
     gl::label_shader(m_Id, shader);
