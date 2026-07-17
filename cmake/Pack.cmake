@@ -84,9 +84,7 @@ function(target_pack target)
             COMMAND adb shell am force-stop com.engine.Game
             COMMAND adb shell monkey -p com.engine.Game 1
 
-            # COMMAND adb logcat -s ENGINE:D "*:S"
-            COMMAND adb logcat | findstr ENGINE
-            # COMMAND adb logcat -s Engine:V *:F
+            COMMAND adb logcat -v threadtime -s ENGINE:V libc:F DEBUG:F DEBUGGERD:F tombstoned:F AndroidRuntime:E
 
             DEPENDS ${target}
 

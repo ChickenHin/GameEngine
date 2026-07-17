@@ -9,6 +9,7 @@
 #include "Shader.hpp"
 
 #include <ranges>
+#include <sstream>
 
 auto get_shader_info(uint32_t id, uint32_t what) -> int32_t; //what : GL_SHADER_TYPE, GL_DELETE_STATUS, GL_COMPILE_STATUS, GL_INFO_LOG_LENGTH, GL_SHADER_SOURCE_LENGTH.
 
@@ -26,19 +27,28 @@ Shader::Shader(const char* shader, Type type)
     m_Id = gl::CreateShader(gl_type);
     m_Type = type;
 
-    auto glsl_header = std::format(
-        "#version {}{}0 {}\n"
-        "precision mediump float;\n"
-        "precision mediump int;\n"
-        "precision mediump sampler2D;\n"
-        "precision mediump sampler3D;\n"
-        "precision mediump samplerCube;\n"
-        "#define MAX_INSTANCES {}\n",
-        OpenGL::MIN_REQUIRED_MAJOR_VERSION, OpenGL::MIN_REQUIRED_MINOR_VERSION, 
-        OpenGL::api == OpenGL::API::ES ? "es" : "core",
-        gl::get_intv(GL_MAX_TEXTURE_IMAGE_UNITS)
-    );
+    std::ostringstream header;
 
+    header << "#version " << OpenGL::MIN_REQUIRED_MAJOR_VERSION << OpenGL::MIN_REQUIRED_MINOR_VERSION << "0 " << ( OpenGL::api == OpenGL::API::ES ? "es\n" : "core\n");
+    header << "precision mediump float;\n";
+    header << "precision mediump int;\n";
+    header << "precision mediump sampler2D;\n";
+    header << "precision mediump sampler3D;\n";
+    header << "precision mediump samplerCube;\n";
+
+    auto MAX_TEXTURE_IMAGE_UNITS = gl::get_intv(GL_MAX_TEXTURE_IMAGE_UNITS);
+
+    { // Macros & defines
+        header << "#define MAX_TEXTURE_IMAGE_UNITS " << MAX_TEXTURE_IMAGE_UNITS << '\n';
+        header << "#define sampler_at(s, uv, idx) (";
+        
+        for (int i = 0; i < MAX_TEXTURE_IMAGE_UNITS; i++)
+            header << "idx == " << i << " ? texture(s[" << i << "], uv) : ";
+
+        header << "vec4(0.0))";
+    }
+
+    auto glsl_header = header.str();
     auto glsl_l = res::get("res/shaders/common.glsl");
     auto glsl_src = res::get(shader);
 
@@ -47,26 +57,33 @@ Shader::Shader(const char* shader, Type type)
     set_sources(srcs);
     compile();
 
+    static auto vndr = reinterpret_cast<const char*>(gl::GetString(GL_VENDOR));
+    static auto vendor = std::string(vndr ? vndr : "");
+
     auto comp_stat = check_compile_status();
     if (!comp_stat.empty()) {
-        std::string line = "0";
-        std::string msg;
+        if(vendor.contains("intel")){
+            std::string line = "0";
+            std::string msg;
 
-        for(auto r : comp_stat | std::views::split('\n')){
-            std::string l(r.begin(), r.end());
-            if(l.starts_with("ERROR:")){ // probably intel
-                auto p1 = l.find(':');          // ERROR:
-                auto p2 = l.find(':', p1 + 1);  // source id
-                auto p3 = l.find(':', p2 + 1);  // line number
-                
-                line = l.substr(p2 + 1, p3 - p2 - 1);
-                msg  = l.substr(p3 + 1);
+            for(auto r : comp_stat | std::views::split('\n')){
+                std::string l(r.begin(), r.end());
+                if(l.starts_with("ERROR:")){ // probably intel
+                    auto p1 = l.find(':');          // ERROR:
+                    auto p2 = l.find(':', p1 + 1);  // source id
+                    auto p3 = l.find(':', p2 + 1);  // line number
+                    
+                    line = l.substr(p2 + 1, p3 - p2 - 1);
+                    msg  = l.substr(p3 + 1);
+                }
+                if(!msg.empty())
+                    logg::error("\n\t-> glsl compile : {}:{} {}", shader, line, msg);
+
+                line = "0";
+                msg.clear();
             }
-            if(!msg.empty())
-                logg::error("\n\t-> glsl compile : {}:{} {}", shader, line, msg);
-
-            line = "0";
-            msg.clear();
+        } else {
+            throw Exception("({}) glsl compile : {}", shader, comp_stat);
         }
     }
 

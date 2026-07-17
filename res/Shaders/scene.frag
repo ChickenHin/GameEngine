@@ -5,7 +5,7 @@ flat in int InstanceID;
 
 out vec4 FragColor;
 
-uniform sampler2D uDiffuseMaps[MAX_INSTANCES];
+uniform sampler2D uDiffuseMaps[MAX_TEXTURE_IMAGE_UNITS];
 
 layout(std140) uniform Camera
 {
@@ -39,8 +39,8 @@ void main()
         32.0
     );
 
-    vec3 albedo = texture(uDiffuseMaps[InstanceID], Uv).rgb;
-
+    vec3 albedo = sampler_at(uDiffuseMaps, Uv, InstanceID).rgb;
+   
     vec3 ambient  = Sun.Ambient * albedo;
     vec3 diffuse  = diff * Sun.Color * albedo;
     vec3 specular = spec * Sun.Color * 0.35;
