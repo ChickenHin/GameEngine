@@ -469,6 +469,7 @@ auto ShaderProgram::set_uniform(const std::string& name, const emath::mat4* valu
         throw Exception("[what: {}] the Uniform `{}` not exist", e.what(), name);
     }
 }
+
 auto ShaderProgram::set_uniform(const std::string& name, const int32_t* value, int32_t count) const -> void
 {
     try {
@@ -476,6 +477,18 @@ auto ShaderProgram::set_uniform(const std::string& name, const int32_t* value, i
         Expect(size >= count, "GLSL Uniform size:{} < count", size);
 
         gl::Uniform1iv(static_cast<int32_t>(loc), count, value);
+    } catch(const std::exception& e) {
+        throw Exception("[what: {}] the Uniform `{}` not exist", e.what(), name);
+    }
+}
+
+auto ShaderProgram::set_uniform(const std::string& name, const uint32_t* value, int32_t count) const -> void
+{
+    try {
+        auto [loc, type, size] = m_Uniforms.at(name);
+        Expect(size >= count, "GLSL Uniform size:{} < count", size);
+
+        gl::Uniform1uiv(static_cast<int32_t>(loc), count, value);
     } catch(const std::exception& e) {
         throw Exception("[what: {}] the Uniform `{}` not exist", e.what(), name);
     }
