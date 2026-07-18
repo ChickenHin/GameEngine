@@ -44,6 +44,8 @@ static auto func##_ext = [](){\
     FUNC_GL_X(TexParameteri)\
     FUNC_GL_X(PixelStorei)\
     FUNC_GL_X(TexImage2D)\
+    FUNC_GL_X(TexImage3D)\
+    FUNC_GL_X(TexSubImage3D)\
     FUNC_GL_X(ActiveTexture)\
     FUNC_GL_X(BindTexture)\
     FUNC_GL_X(GenerateMipmap)\
@@ -56,7 +58,6 @@ static auto func##_ext = [](){\
     FUNC_GL_X(GetProgramiv)\
     FUNC_GL_X(GetProgramInfoLog)\
     FUNC_GL_X(GetActiveUniform)\
-    FUNC_GL_X(Uniform1iv)\
     FUNC_GL_X(Uniform1i)\
     FUNC_GL_X(Uniform2i)\
     FUNC_GL_X(Uniform3i)\
@@ -72,9 +73,11 @@ static auto func##_ext = [](){\
     FUNC_GL_X(Uniform2fv)\
     FUNC_GL_X(Uniform3fv)\
     FUNC_GL_X(Uniform4fv)\
+    FUNC_GL_X(Uniform1iv)\
     FUNC_GL_X(Uniform2iv)\
     FUNC_GL_X(Uniform3iv)\
     FUNC_GL_X(Uniform4iv)\
+    FUNC_GL_X(Uniform1uiv)\
     FUNC_GL_X(Uniform2uiv)\
     FUNC_GL_X(Uniform3uiv)\
     FUNC_GL_X(Uniform4uiv)\
