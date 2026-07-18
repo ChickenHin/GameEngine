@@ -36,6 +36,7 @@ public:
     auto height() const -> int32_t;
     auto channels() const -> int32_t;
     auto format() const -> Format;
+    auto resize(int32_t w, int32_t h) -> void;
 
     auto data() const -> std::span<const uint8_t>;
     auto size() const -> std::size_t;

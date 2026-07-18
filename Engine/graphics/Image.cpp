@@ -8,9 +8,13 @@
 #include <cstring>
 #include <utility>
 
-#define STB_IMAGE_IMPLEMENTATION
 #define STBI_NO_THREAD_LOCALS
+
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
+
+#define STB_IMAGE_RESIZE2_IMPLEMENTATION
+#include <stb/stb_image_resize2.h>
 
 namespace eg_detail {
     constexpr auto floorf(float x) -> float
@@ -192,4 +196,52 @@ auto Image::format() const -> Format
 {
     Expect(m_Channels > 0 && m_Channels  <= 4, "supported channels count is less then 4");
     return static_cast<Format>(m_Channels);
+}
+
+auto Image::resize(int32_t w, int32_t h) -> void
+{
+
+    Expect(valid(), "Image not valid");
+
+    if (w == m_Width && h == m_Height)
+        return;
+
+    std::size_t newSize = static_cast<std::size_t>(w) *
+                          static_cast<std::size_t>(h) *
+                          static_cast<std::size_t>(m_Channels);
+
+    auto* newData = new uint8_t[newSize];
+
+    stbir_pixel_layout layout;
+
+    switch (m_Channels)
+    {
+        case 1: layout = STBIR_1CHANNEL; break;
+        case 2: layout = STBIR_2CHANNEL; break;
+        case 3: layout = STBIR_RGB;      break;
+        case 4: layout = STBIR_RGBA;     break;
+        default:
+            delete[] newData;
+            throw Exception("Unsupported channel count");
+    }
+
+    stbir_resize_uint8_linear(
+        m_Data,
+        m_Width,
+        m_Height,
+        0,
+        newData,
+        w,
+        h,
+        0,
+        layout
+    );
+
+    
+    if (m_Data && m_Data != procedural_texture_func.data())
+        stbi_image_free(const_cast<uint8_t*>(m_Data));
+
+    m_Data = newData;
+    m_Width = w;
+    m_Height = h;
 }
