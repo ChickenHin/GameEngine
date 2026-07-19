@@ -280,6 +280,8 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
     std::vector<emath::mat4> modelMatrices;
     modelMatrices.reserve(BATCH_SIZE);
 
+    // TODO: explore idea : scene entities some freq vector and sorted by material and instanced by freq value
+
     for (auto group : Entities)
     {
 
