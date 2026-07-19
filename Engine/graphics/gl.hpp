@@ -180,6 +180,8 @@ namespace gl {
     auto get_floatv (GLenum pname) -> float;
     auto get_intv (GLenum pname) -> int32_t;
 
+    auto texture_param_anisotropic(GLenum target) -> void;
+
 } // namespace gl
 
 // im assuming Gl types are the same as these types if any assert fail . comment it and try to see maybe will work normaly or UB

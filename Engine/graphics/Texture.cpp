@@ -46,6 +46,8 @@ Texture::Texture(const char* name, Type type)
     gl::GenTextures(1, &m_Id);
     gl::BindTexture(gl_type, m_Id);
 
+    gl::texture_param_anisotropic(gl_type);
+
     switch(m_Type){
         case Texture::Type::_2D: make_texture_Texture2D(name); break;
         case Texture::Type::_3D: make_texture_Texture3D(name); break;

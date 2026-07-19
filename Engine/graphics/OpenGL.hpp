@@ -37,6 +37,7 @@ class ENGINE_EXPORT OpenGL
 
         constexpr static bool   DEBUG = true;
         constexpr static size_t MSAA  = 2;
+        constexpr static float ANISOTROPY = 2.0f;
 
     private:
         auto create_context() -> GL_CTX;
@@ -50,4 +51,7 @@ class ENGINE_EXPORT OpenGL
         GL_CTX m_Context;
         int32_t m_Major;
         int32_t m_Minor;
+
+        int32_t MAX_MSAA;
+        int32_t MAX_ANISOTROPY;
 };

@@ -18,6 +18,8 @@ OpenGL::OpenGL([[maybe_unused]] const CWindow& window)
     , m_Context(create_context())
     , m_Major(0)
     , m_Minor(0)
+    , MAX_MSAA(0)
+    , MAX_ANISOTROPY(0)
 {
     if (make_current()) load_functions();
     else throw Exception("Failed to make context current.");
@@ -52,6 +54,30 @@ OpenGL::OpenGL([[maybe_unused]] const CWindow& window)
 
     if constexpr (DEBUG) enable_debug();
 
+    {
+        MAX_MSAA = gl::get_intv(GL_MAX_SAMPLES);
+    }
+
+    {
+        if (
+            gl::extensions().contains("GL_EXT_texture_filter_anisotropic") ||
+            gl::extensions().contains("GL_ARB_texture_filter_anisotropic")
+        ){
+            #if defined(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
+            #define MAX_TEXTURE_MAX_ANISOTROPY GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
+            #elif defined(GL_MAX_TEXTURE_MAX_ANISOTROPY_ARB)
+            #define MAX_TEXTURE_MAX_ANISOTROPY GL_MAX_TEXTURE_MAX_ANISOTROPY_ARB
+            #elif defined(GL_MAX_TEXTURE_MAX_ANISOTROPY)
+            #define MAX_TEXTURE_MAX_ANISOTROPY GL_MAX_TEXTURE_MAX_ANISOTROPY
+            #else
+            #define MAX_TEXTURE_MAX_ANISOTROPY -1 
+            #endif
+
+            if(MAX_TEXTURE_MAX_ANISOTROPY != -1)
+                MAX_ANISOTROPY = gl::get_floatv(MAX_TEXTURE_MAX_ANISOTROPY);
+        }
+    }
+
     logg::info(os::build_info());
     logg::info("===================================[GL Info]=========================================");
     logg::info("Platform Name: {}", os::name());
@@ -61,6 +87,8 @@ OpenGL::OpenGL([[maybe_unused]] const CWindow& window)
     logg::info("GL Vendor : {}", Vendor);
     logg::info("GL Renderer : {}", Renderer);
     logg::info("GL Debug : {}", DEBUG ? "true" : "false");
+    logg::info("Max Multisample Anti-Aliasing : {}", MAX_MSAA);
+    logg::info("Max anisotropic: {}", MAX_ANISOTROPY);
     logg::info("===================================[GL Extention]=========================================");
     logg::info(gl::extensions());
     logg::info("===================================[Plt Extention]=========================================");
@@ -81,7 +109,6 @@ OpenGL::OpenGL([[maybe_unused]] const CWindow& window)
     gl_info(GL_MAX_COMBINED_UNIFORM_BLOCKS);
     gl_info(GL_MAX_RENDERBUFFER_SIZE);
     gl_info(GL_MAX_COLOR_ATTACHMENTS);
-    gl_info(GL_MAX_SAMPLES);
     gl_info(GL_SAMPLES);
 }
 
@@ -407,4 +434,24 @@ auto gl::begin_query_time_elapsed(GLuint id) -> void
 auto gl::end_query_time_elapsed() -> void
 {
     gl::EndQuery(TIME_ELAPSED);
+}
+
+auto gl::texture_param_anisotropic(GLenum target) -> void
+{
+    #if defined(GL_TEXTURE_MAX_ANISOTROPY_EXT)
+    #define TEXTURE_MAX_ANISOTROPY GL_TEXTURE_MAX_ANISOTROPY_EXT
+    #elif defined(GL_TEXTURE_MAX_ANISOTROPY_ARB)
+    #define TEXTURE_MAX_ANISOTROPY GL_TEXTURE_MAX_ANISOTROPY_ARB
+    #elif defined(GL_TEXTURE_MAX_ANISOTROPY)
+    #define TEXTURE_MAX_ANISOTROPY GL_TEXTURE_MAX_ANISOTROPY
+    #else
+    #define TEXTURE_MAX_ANISOTROPY -1 
+    #endif
+
+    if (
+        gl::extensions().contains("GL_EXT_texture_filter_anisotropic") ||
+        gl::extensions().contains("GL_ARB_texture_filter_anisotropic")
+    ){
+        gl::TexParameterf(target, TEXTURE_MAX_ANISOTROPY, OpenGL::ANISOTROPY);
+    }
 }
