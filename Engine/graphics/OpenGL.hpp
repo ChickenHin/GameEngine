@@ -53,5 +53,5 @@ class ENGINE_EXPORT OpenGL
         int32_t m_Minor;
 
         int32_t MAX_MSAA;
-        int32_t MAX_ANISOTROPY;
+        float MAX_ANISOTROPY;
 };
