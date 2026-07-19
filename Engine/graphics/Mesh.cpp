@@ -137,14 +137,10 @@ namespace attribs {
 Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint16_t>& indices)
     : m_Vertices(vertices)
     , m_Indices(indices)
-    , VAO(0)
-    , VBO(0)
-    , IBO(0)
+    , VAO(gl::create_vertex_array())
+    , VBO(gl::create_array_buffer())
+    , IBO(gl::create_index_buffer())
 {
-    gl::GenVertexArrays(1, &VAO);
-    gl::GenBuffers(1, &VBO);
-    gl::GenBuffers(1, &IBO);
-
     gl::BindVertexArray(VAO);
 
     gl::BindBuffer(GL_ARRAY_BUFFER, VBO);

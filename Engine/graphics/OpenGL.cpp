@@ -3,6 +3,7 @@
 #include "gl.hpp"
 #include "Window.hpp"
 
+#include <GL/glcorearb.h>
 #include <core/Log.hpp>
 #include <core/SysInfo.hpp>
 #include <core/Exception.hpp>
@@ -322,7 +323,12 @@ auto gl::label_texture(uint32_t id, const char* name) -> void
     #define GL_TEXTURE 0
     #endif
 
-    ObjectLabel(GL_TEXTURE, id, -1, name);
+    static size_t c{1};
+
+    std::string full_name = std::format("Texture[{}]: ", c++);
+    if (name) full_name += name;
+
+    ObjectLabel(GL_TEXTURE, id, -1, full_name.c_str());
 }
 
 auto gl::label_vertex_array(uint32_t id, const char* name) -> void
@@ -331,25 +337,74 @@ auto gl::label_vertex_array(uint32_t id, const char* name) -> void
     #define GL_VERTEX_ARRAY 0
     #endif
 
-    ObjectLabel(GL_VERTEX_ARRAY, id, -1, name);
+    static size_t c{1};
+
+    std::string full_name = std::format("VAO[{}]: ", c++);
+    if (name) full_name += name;
+
+    ObjectLabel(GL_VERTEX_ARRAY, id, -1, full_name.c_str());
 }
 
-auto gl::label_buffer(uint32_t id, const char* name) -> void
+auto gl::label_array_buffer(uint32_t id, const char* name) -> void
 {
     #ifndef GL_BUFFER
     #define GL_BUFFER 0
     #endif
 
-    ObjectLabel(GL_BUFFER, id, -1, name);
+    static size_t c{1};
+
+    std::string full_name = std::format("VBO[{}]: ", c++);
+    if (name) full_name += name;
+
+    ObjectLabel(GL_BUFFER, id, -1, full_name.c_str());
 }
 
-auto gl::label_shader(uint32_t id, const char* name) -> void
+auto gl::label_index_buffer(uint32_t id, const char* name) -> void
+{
+    #ifndef GL_BUFFER
+    #define GL_BUFFER 0
+    #endif
+
+    static size_t c{1};
+
+    std::string full_name = std::format("IBO[{}]: ", c++);
+    if (name) full_name += name;
+
+    ObjectLabel(GL_BUFFER, id, -1, full_name.c_str());
+}
+
+auto gl::label_uniform_buffer(uint32_t id, const char* name) -> void
+{
+    #ifndef GL_BUFFER
+    #define GL_BUFFER 0
+    #endif
+
+    static size_t c{1};
+
+    std::string full_name = std::format("UBO[{}]: ", c++);
+    if (name) full_name += name;
+
+    ObjectLabel(GL_BUFFER, id, -1, full_name.c_str());
+}
+
+auto gl::label_shader(uint32_t id, GLenum type, const char* name) -> void
 {
     #ifndef GL_SHADER
     #define GL_SHADER 0
     #endif
 
-    ObjectLabel(GL_SHADER, id, -1, name);
+    std::string full_name;
+    switch(type){
+        case GL_VERTEX_SHADER: full_name = "Vertex "; break;
+        case GL_FRAGMENT_SHADER: full_name = "Fragment "; break;
+    }
+
+    static size_t c{1};
+
+    full_name += std::format("Shader[{}]: ", c++);
+    if (name) full_name += name;
+
+    ObjectLabel(GL_SHADER, id, -1, full_name.c_str());
 }
 
 auto gl::label_program(uint32_t id, const char* name) -> void
@@ -358,7 +413,26 @@ auto gl::label_program(uint32_t id, const char* name) -> void
     #define GL_PROGRAM 0
     #endif
 
-    ObjectLabel(GL_PROGRAM, id, -1, name);
+    static size_t c{1};
+
+    std::string full_name = std::format("Program[{}]: ", c++);
+    if (name) full_name += name;
+
+    ObjectLabel(GL_PROGRAM, id, -1, full_name.c_str());
+}
+
+auto gl::label_querie(uint32_t id, const char* name) -> void
+{
+    #ifndef GL_QUERY
+    #define GL_QUERY 0
+    #endif
+
+    static size_t c{1};
+
+    std::string full_name = std::format("Querie[{}]: ", c++);
+    if (name) full_name += name;
+
+    ObjectLabel(GL_QUERY, id, -1, full_name.c_str());
 }
 
 auto gl::get_boolv (GLenum pname) -> bool
@@ -454,4 +528,75 @@ auto gl::texture_param_anisotropic(GLenum target) -> void
     ){
         gl::TexParameterf(target, TEXTURE_MAX_ANISOTROPY, OpenGL::ANISOTROPY);
     }
+}
+
+auto gl::create_vertex_array(const char* name) -> uint32_t
+{
+    uint32_t r{};
+    gl::GenVertexArrays(1, &r);
+
+    gl::label_vertex_array(r, name);
+    return r;
+}
+
+auto gl::create_array_buffer(const char* name) -> uint32_t
+{
+    uint32_t r{};
+    gl::GenBuffers(1, &r);
+    
+    gl::label_array_buffer(r, name);
+    return r;
+}
+
+auto gl::create_index_buffer(const char* name) -> uint32_t
+{
+    uint32_t r{};
+    gl::GenBuffers(1, &r);
+    
+    gl::label_index_buffer(r, name);
+    return r;
+}
+
+auto gl::create_uniform_buffer(const char* name) -> uint32_t
+{
+    uint32_t r{};
+    gl::GenBuffers(1, &r);
+    
+    gl::label_uniform_buffer(r, name);
+    return r;
+}
+
+auto gl::create_texture(const char* name) -> uint32_t
+{
+    uint32_t r{};
+    gl::GenTextures(1, &r);
+    
+    gl::label_texture(r, name);
+    return r;
+}
+
+auto gl::create_shader(GLenum type, const char* name) -> uint32_t
+{
+    uint32_t r = gl::CreateShader(type);
+
+    gl::label_shader(r, type, name);
+    return r;
+}
+
+auto gl::create_program(const char* name) -> uint32_t
+{
+    uint32_t r = gl::CreateProgram();
+
+    gl::label_program(r, name);
+    return r;
+}
+
+
+auto gl::create_querie(const char* name) -> uint32_t
+{
+    uint32_t r{};
+    gl::GenQueries(1, &r);
+
+    gl::label_querie(r, name);
+    return r;
 }

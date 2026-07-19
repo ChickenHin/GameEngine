@@ -38,12 +38,10 @@ constexpr auto to_gl(Texture::Type type) -> uint32_t
 }
 
 Texture::Texture(const char* name, Type type)
-    : m_Id(0)
+    : m_Id(gl::create_texture(name))
     , m_Type(type)
 {
     auto gl_type = to_gl(m_Type);
-
-    gl::GenTextures(1, &m_Id);
     gl::BindTexture(gl_type, m_Id);
 
     gl::texture_param_anisotropic(gl_type);
@@ -55,8 +53,6 @@ Texture::Texture(const char* name, Type type)
         case Texture::Type::_CubeMap: make_texture_TextureCubeMap(name); break;
         default: throw "texture type not supported";
     }
-
-    gl::label_texture(m_Id, name);
 }
 
 Texture::Texture(Texture&& other) noexcept : m_Id(other.m_Id), m_Type(other.m_Type) {

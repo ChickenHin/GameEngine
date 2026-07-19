@@ -64,16 +64,23 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
         std::make_shared<ShaderProgram>("res/shaders/depth.vert", "res/shaders/depth.frag", "Depth pre-pass")
     }
     , m_Scene {
-        std::make_shared<ShaderProgram>("res/shaders/scene.vert", "res/shaders/scene.frag", "Scene"), 0
+        std::make_shared<ShaderProgram>("res/shaders/scene.vert", "res/shaders/scene.frag", "Scene"),
+        gl::create_querie("Scene Time Elapsed")
+
     }
     , m_SkyBox {
         std::make_shared<ShaderProgram>("res/shaders/skybox.vert", "res/shaders/skybox.frag", "SkyBox"),
-        Texture::texture_cubemap("res/textures/forest.jpg"), 0
+        Texture::texture_cubemap("res/textures/forest.jpg"),
+        gl::create_querie("SkyBox Time Elapsed")
+
     }
     , m_Text {
         text,
         std::make_shared<ShaderProgram>("res/shaders/text.vert", "res/shaders/text.frag", "Text"),
-        0, 0, 0, 0
+        gl::create_vertex_array("Text"), 
+        gl::create_array_buffer("Text"),
+        gl::create_texture("Text Atlas"),
+        gl::create_querie("Text Time Elapsed")
     }
     , m_Stats()
     , m_Frame(0)
@@ -83,9 +90,6 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
         {m_Text.Program->name(), 0}
     }
 {
-    gl::GenQueries(1, &m_Scene.time_elapsed);
-    gl::GenQueries(1, &m_SkyBox.time_elapsed);
-    gl::GenQueries(1, &m_Text.time_elapsed);
 
     set_depth(true);
     set_stencil(true);
@@ -95,9 +99,7 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
     // Initialize buffers
     prepare_text_buffers();
 
-    gl::GenTextures(1, &m_Text.Atlas);
     gl::BindTexture(GL_TEXTURE_2D, m_Text.Atlas);
-    gl::label_texture(m_Text.Atlas, "Text Atlas");
 
     auto [w, h] = m_Text.Text.atlas_dims();
     std::vector<uint8_t> bitmap = m_Text.Text.bitmap(w,h);
@@ -414,15 +416,11 @@ auto OpenGLRenderer::stats() const -> RenderStats
 
 auto OpenGLRenderer::prepare_text_buffers() -> void {
     // Generate and bind VAO
-    gl::GenVertexArrays(1, &m_Text.VAO);
     gl::BindVertexArray(m_Text.VAO);
-    gl::label_vertex_array(m_Text.VAO, "Text VAO");
 
     // Dynamic instance VBO
-    gl::GenBuffers(1, &m_Text.VBO);
     gl::BindBuffer(GL_ARRAY_BUFFER, m_Text.VBO);
     gl::BufferData(GL_ARRAY_BUFFER, TEXT_BATCH_SIZE * sizeof(Text::Glyph), nullptr, GL_STREAM_DRAW);
-    gl::label_buffer(m_Text.VBO, "Text VBO");
 
     // Offset (2 * 4 byte)
     gl::EnableVertexAttribArray(0);

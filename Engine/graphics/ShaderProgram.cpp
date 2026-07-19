@@ -10,7 +10,7 @@
 #include <utility>
 
 ShaderProgram::ShaderProgram(std::shared_ptr<Shader> vertex, std::shared_ptr<Shader> fragment, const char* name)
-    : m_Id(gl::CreateProgram())
+    : m_Id(gl::create_program(name))
     , m_Name(name ? name : "")
 {
     m_Shaders.reserve(2);
@@ -35,8 +35,6 @@ ShaderProgram::ShaderProgram(std::shared_ptr<Shader> vertex, std::shared_ptr<Sha
 
     dump_attribs();
     dump_uniforms();
-
-    if(!m_Name.empty()) gl::label_program(m_Id, m_Name.c_str());
 }
 
 ShaderProgram::ShaderProgram(const char* vertex, const char* fragment, const char* name)
@@ -544,9 +542,8 @@ auto ShaderProgram::glsl_type_to_string(uint32_t type) -> const char*
 
 auto ShaderProgram::create_ubo(const char* name, size_t size, void* data) -> void
 {
-    uint32_t ubo{};
+    uint32_t ubo = gl::create_uniform_buffer(name);
 
-    gl::GenBuffers(1, &ubo);
     gl::BindBuffer(GL_UNIFORM_BUFFER, ubo);
 
     m_UBOs[name] = ubo;
@@ -556,9 +553,6 @@ auto ShaderProgram::create_ubo(const char* name, size_t size, void* data) -> voi
 
     gl::BufferData(GL_UNIFORM_BUFFER, size, data, GL_DYNAMIC_DRAW);
     gl::BindBufferBase(GL_UNIFORM_BUFFER, binding, ubo);
-
-    auto lbl_name = name + std::string(" UBO");
-    gl::label_buffer(ubo, lbl_name.c_str());
 }
 
 auto ShaderProgram::attach_ubo(const char* name) -> void

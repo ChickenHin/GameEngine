@@ -24,7 +24,7 @@ Shader::Shader(const char* shader, Type type)
         default: gl_type = 0;
     }
 
-    m_Id = gl::CreateShader(gl_type);
+    m_Id = gl::create_shader(gl_type, shader);
     m_Type = type;
 
     std::ostringstream header;
@@ -90,8 +90,6 @@ Shader::Shader(const char* shader, Type type)
                 logg::error("\n\t-> glsl compiler : {}:{} {}", shader, line, msg);
         }
     }
-
-    gl::label_shader(m_Id, shader);
 }
 
 Shader::Shader(const std::string& shader, Type type)

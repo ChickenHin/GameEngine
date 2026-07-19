@@ -163,11 +163,23 @@ namespace gl {
     auto extensions() -> std::string;
     auto push_debug_group(const char* name) -> void;
     auto pop_debug_group() -> void;
-    auto label_texture(GLuint id, const char* name) -> void;
     auto label_vertex_array(GLuint id, const char* name) -> void;
-    auto label_buffer(GLuint id, const char* name) -> void;
-    auto label_shader(GLuint id, const char* name) -> void;
+    auto label_array_buffer(GLuint id, const char* name) -> void;
+    auto label_index_buffer(GLuint id, const char* name) -> void;
+    auto label_uniform_buffer(GLuint id, const char* name) -> void;
+    auto label_texture(GLuint id, const char* name) -> void;
+    auto label_shader(GLuint id, GLenum type, const char* name) -> void;
     auto label_program(GLuint id, const char* name) -> void;
+    auto label_querie(GLuint id, const char* name) -> void;
+
+    auto create_vertex_array(const char* name = nullptr) -> uint32_t;
+    auto create_array_buffer(const char* name = nullptr) -> uint32_t;
+    auto create_index_buffer(const char* name = nullptr) -> uint32_t;
+    auto create_uniform_buffer(const char* name = nullptr) -> uint32_t;
+    auto create_texture(const char* name = nullptr) -> uint32_t;
+    auto create_shader(GLenum type, const char* name = nullptr) -> uint32_t;
+    auto create_program(const char* name = nullptr) -> uint32_t;
+    auto create_querie(const char* name = nullptr) -> uint32_t;
 
     auto get_query_object_i64(GLuint id, GLenum pname, GLint64* param) -> void;
     auto get_query_object_ui64(GLuint id, GLenum pname, GLuint64* param) -> void;
