@@ -39,17 +39,13 @@ Shader::Shader(const char* shader, Type type)
     header << "#pragma optimize("<< (OpenGL::DEBUG ? "off" : "on") <<")\n";
     header << "#pragma debug("<< (OpenGL::DEBUG ? "off" : "on") <<")\n";
 
-    auto MAX_FRAGMENT_TEXTURE_UNITS = gl::get_intv(GL_MAX_TEXTURE_IMAGE_UNITS);
-    auto MAX_VERTEX_TEXTURE_UNITS = gl::get_intv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS);
-    auto MAX_COMBINED_TEXTURE_UNITS = gl::get_intv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
-
     // Macros & defines
-    header << "#define MAX_FRAGMENT_TEXTURE_UNITS " << MAX_FRAGMENT_TEXTURE_UNITS << '\n';
-    header << "#define MAX_VERTEX_TEXTURE_UNITS " << MAX_VERTEX_TEXTURE_UNITS << '\n';
-    header << "#define MAX_COMBINED_TEXTURE_UNITS " << MAX_COMBINED_TEXTURE_UNITS << '\n';
+    header << "#define MAX_FRAGMENT_TEXTURE_UNITS " << OpenGL::MAX_FRAGMENT_TEXTURE_UNITS << '\n';
+    header << "#define MAX_VERTEX_TEXTURE_UNITS " << OpenGL::MAX_VERTEX_TEXTURE_UNITS << '\n';
+    header << "#define MAX_COMBINED_TEXTURE_UNITS " << OpenGL::MAX_COMBINED_TEXTURE_UNITS << '\n';
     {
         header << "#define sampler_at(s, uv, idx) (";
-        for (int i = 0; i < MAX_FRAGMENT_TEXTURE_UNITS; i++)
+        for (int i = 0; i < OpenGL::MAX_FRAGMENT_TEXTURE_UNITS; i++)
             header << "idx == " << i << " ? texture(s[" << i << "], uv) : ";
 
         header << "vec4(0.0))";

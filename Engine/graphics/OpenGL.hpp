@@ -44,6 +44,7 @@ class ENGINE_EXPORT OpenGL
         auto enable_debug() const -> void;
         auto resolve_function(const char* name) -> void*;
         auto load_functions() -> void;
+        auto init_max_members() -> void;
 
     private:
         const CWindow& m_Window;
@@ -52,6 +53,38 @@ class ENGINE_EXPORT OpenGL
         int32_t m_Major;
         int32_t m_Minor;
 
-        int32_t MAX_MSAA;
-        float MAX_ANISOTROPY;
+        inline static int32_t s_MAX_FRAGMENT_TEXTURE_UNITS{};
+        inline static int32_t s_MAX_VERTEX_TEXTURE_UNITS{};
+        inline static int32_t s_MAX_COMBINED_TEXTURE_UNITS{};
+        inline static int32_t s_MAX_MSAA{};
+        inline static float   s_MAX_ANISOTROPY{};
+        inline static int32_t s_MAX_TEXTURE_SIZE{};
+        inline static int32_t s_MAX_3D_TEXTURE_SIZE{};
+        inline static int32_t s_MAX_CUBE_MAP_TEXTURE_SIZE{};
+        inline static int32_t s_MAX_ARRAY_TEXTURE_LAYERS{};
+        inline static int32_t s_MAX_VERTEX_UNIFORM_COMPONENTS{};
+        inline static int32_t s_MAX_FRAGMENT_UNIFORM_COMPONENTS{};
+        inline static int32_t s_MAX_UNIFORM_BLOCK_SIZE{};
+        inline static int32_t s_MAX_UNIFORM_BUFFER_BINDINGS{};
+        inline static int32_t s_MAX_COMBINED_UNIFORM_BLOCKS{};
+        inline static int32_t s_MAX_RENDERBUFFER_SIZE{};
+        inline static int32_t s_MAX_COLOR_ATTACHMENTS{};
+
+    public:
+        inline static const int32_t& MAX_FRAGMENT_TEXTURE_UNITS = s_MAX_FRAGMENT_TEXTURE_UNITS;
+        inline static const int32_t& MAX_VERTEX_TEXTURE_UNITS = s_MAX_VERTEX_TEXTURE_UNITS;
+        inline static const int32_t& MAX_COMBINED_TEXTURE_UNITS = s_MAX_COMBINED_TEXTURE_UNITS;
+        inline static const int32_t& MAX_MSAA = s_MAX_MSAA;
+        inline static const float&   MAX_ANISOTROPY = s_MAX_ANISOTROPY;
+        inline static const int32_t& MAX_TEXTURE_SIZE = s_MAX_TEXTURE_SIZE;
+        inline static const int32_t& MAX_3D_TEXTURE_SIZE = s_MAX_3D_TEXTURE_SIZE;
+        inline static const int32_t& MAX_CUBE_MAP_TEXTURE_SIZE = s_MAX_CUBE_MAP_TEXTURE_SIZE;
+        inline static const int32_t& MAX_ARRAY_TEXTURE_LAYERS = s_MAX_ARRAY_TEXTURE_LAYERS;
+        inline static const int32_t& MAX_VERTEX_UNIFORM_COMPONENTS = s_MAX_VERTEX_UNIFORM_COMPONENTS;
+        inline static const int32_t& MAX_FRAGMENT_UNIFORM_COMPONENTS = s_MAX_FRAGMENT_UNIFORM_COMPONENTS;
+        inline static const int32_t& MAX_UNIFORM_BLOCK_SIZE = s_MAX_UNIFORM_BLOCK_SIZE;
+        inline static const int32_t& MAX_UNIFORM_BUFFER_BINDINGS = s_MAX_UNIFORM_BUFFER_BINDINGS;
+        inline static const int32_t& MAX_COMBINED_UNIFORM_BLOCKS = s_MAX_COMBINED_UNIFORM_BLOCKS;
+        inline static const int32_t& MAX_RENDERBUFFER_SIZE = s_MAX_RENDERBUFFER_SIZE;
+        inline static const int32_t& MAX_COLOR_ATTACHMENTS = s_MAX_COLOR_ATTACHMENTS;
 };

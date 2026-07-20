@@ -56,7 +56,7 @@ auto APP::frame() -> void
         UiText.draw(std::format("Res         : {}x{}", Window.dims().first, Window.dims().second));
         UiText.draw(std::format("Memory      : {}/{} MB", os::memory_usage(), os::memory_peak()));
         UiText.draw(std::format("Threads     : {}", std::thread::hardware_concurrency()));
-        UiText.draw(std::format("Batch Size  : {}", Renderer->batch_size()));
+        UiText.draw(std::format("Batch Size  : {}", OpenGL::MAX_FRAGMENT_TEXTURE_UNITS));
         UiText.draw(std::format("Pipe Switch : {}", Renderer->stats().pipeline_switch));
         UiText.draw(std::format("Mesh Switch : {}", Renderer->stats().mesh_switch));
         UiText.draw(std::format("Draw Call   : {}", Renderer->stats().draw_call));

@@ -11,7 +11,6 @@
 #include <unordered_map>
 
 #define PACK(x, y) ((uint32_t(x) << 16) | (uint32_t(y) & 0xFFFF))
-#define gl_info(name) logg::info(#name" : {}", gl::get_intv(name))
 
 OpenGL::OpenGL([[maybe_unused]] const CWindow& window)
     : m_Window(window)
@@ -19,8 +18,6 @@ OpenGL::OpenGL([[maybe_unused]] const CWindow& window)
     , m_Context(create_context())
     , m_Major(0)
     , m_Minor(0)
-    , MAX_MSAA(0)
-    , MAX_ANISOTROPY(0)
 {
     if (make_current()) load_functions();
     else throw Exception("Failed to make context current.");
@@ -55,29 +52,7 @@ OpenGL::OpenGL([[maybe_unused]] const CWindow& window)
 
     if constexpr (DEBUG) enable_debug();
 
-    {
-        MAX_MSAA = gl::get_intv(GL_MAX_SAMPLES);
-    }
-
-    {
-        if (
-            gl::extensions().contains("GL_EXT_texture_filter_anisotropic") ||
-            gl::extensions().contains("GL_ARB_texture_filter_anisotropic")
-        ){
-            #if defined(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
-            #define MAX_TEXTURE_MAX_ANISOTROPY GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
-            #elif defined(GL_MAX_TEXTURE_MAX_ANISOTROPY_ARB)
-            #define MAX_TEXTURE_MAX_ANISOTROPY GL_MAX_TEXTURE_MAX_ANISOTROPY_ARB
-            #elif defined(GL_MAX_TEXTURE_MAX_ANISOTROPY)
-            #define MAX_TEXTURE_MAX_ANISOTROPY GL_MAX_TEXTURE_MAX_ANISOTROPY
-            #else
-            #define MAX_TEXTURE_MAX_ANISOTROPY -1 
-            #endif
-
-            if(MAX_TEXTURE_MAX_ANISOTROPY != -1)
-                MAX_ANISOTROPY = gl::get_floatv(MAX_TEXTURE_MAX_ANISOTROPY);
-        }
-    }
+    init_max_members();
 
     logg::info(os::build_info());
     logg::info("===================================[GL Info]=========================================");
@@ -88,29 +63,68 @@ OpenGL::OpenGL([[maybe_unused]] const CWindow& window)
     logg::info("GL Vendor : {}", Vendor);
     logg::info("GL Renderer : {}", Renderer);
     logg::info("GL Debug : {}", DEBUG ? "true" : "false");
-    logg::info("Max Multisample Anti-Aliasing : {}", MAX_MSAA);
+    logg::info("Multisample Anti-Aliasing : {}/{}", gl::get_intv(GL_SAMPLES), MAX_MSAA);
     logg::info("Max anisotropic: {}", MAX_ANISOTROPY);
+
     logg::info("===================================[GL Extention]=========================================");
     logg::info(gl::extensions());
     logg::info("===================================[Plt Extention]=========================================");
     logg::info(m_Window.platform_extensions());
     logg::info("===================================[Metrics]==========================================");
 
-    gl_info(GL_MAX_TEXTURE_SIZE);
-    gl_info(GL_MAX_3D_TEXTURE_SIZE);
-    gl_info(GL_MAX_CUBE_MAP_TEXTURE_SIZE);
-    gl_info(GL_MAX_ARRAY_TEXTURE_LAYERS);
-    gl_info(GL_MAX_TEXTURE_IMAGE_UNITS);
-    gl_info(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS);
-    gl_info(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
-    gl_info(GL_MAX_VERTEX_UNIFORM_COMPONENTS);
-    gl_info(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS);
-    gl_info(GL_MAX_UNIFORM_BLOCK_SIZE);
-    gl_info(GL_MAX_UNIFORM_BUFFER_BINDINGS);
-    gl_info(GL_MAX_COMBINED_UNIFORM_BLOCKS);
-    gl_info(GL_MAX_RENDERBUFFER_SIZE);
-    gl_info(GL_MAX_COLOR_ATTACHMENTS);
-    gl_info(GL_SAMPLES);
+    logg::info("MAX_TEXTURE_SIZE: {}", MAX_TEXTURE_SIZE);
+    logg::info("MAX_3D_TEXTURE_SIZE: {}", MAX_3D_TEXTURE_SIZE);
+    logg::info("MAX_CUBE_MAP_TEXTURE_SIZE: {}", MAX_CUBE_MAP_TEXTURE_SIZE);
+    logg::info("MAX_ARRAY_TEXTURE_LAYERS: {}", MAX_ARRAY_TEXTURE_LAYERS);
+    logg::info("MAX_FRAGMENT_TEXTURE_UNITS: {}", MAX_FRAGMENT_TEXTURE_UNITS);
+    logg::info("MAX_VERTEX_TEXTURE_UNITS: {}", MAX_VERTEX_TEXTURE_UNITS);
+    logg::info("MAX_COMBINED_TEXTURE_UNITS: {}", MAX_COMBINED_TEXTURE_UNITS);
+    logg::info("MAX_VERTEX_UNIFORM_COMPONENTS: {}", MAX_VERTEX_UNIFORM_COMPONENTS);
+    logg::info("MAX_FRAGMENT_UNIFORM_COMPONENTS: {}", MAX_FRAGMENT_UNIFORM_COMPONENTS);
+    logg::info("MAX_UNIFORM_BLOCK_SIZE: {}", MAX_UNIFORM_BLOCK_SIZE);
+    logg::info("MAX_UNIFORM_BUFFER_BINDINGS: {}", MAX_UNIFORM_BUFFER_BINDINGS);
+    logg::info("MAX_COMBINED_UNIFORM_BLOCKS: {}", MAX_COMBINED_UNIFORM_BLOCKS);
+    logg::info("MAX_RENDERBUFFER_SIZE: {}", MAX_RENDERBUFFER_SIZE);
+    logg::info("MAX_COLOR_ATTACHMENTS: {}", MAX_COLOR_ATTACHMENTS);
+}
+
+auto OpenGL::init_max_members() -> void
+{
+    s_MAX_FRAGMENT_TEXTURE_UNITS = gl::get_intv(GL_MAX_TEXTURE_IMAGE_UNITS);
+    s_MAX_VERTEX_TEXTURE_UNITS = gl::get_intv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS);
+    s_MAX_COMBINED_TEXTURE_UNITS = gl::get_intv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+
+    s_MAX_MSAA = gl::get_intv(GL_MAX_SAMPLES);
+
+    if (
+        gl::extensions().contains("GL_EXT_texture_filter_anisotropic") ||
+        gl::extensions().contains("GL_ARB_texture_filter_anisotropic")
+    ){
+        #if defined(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
+        #define MAX_TEXTURE_MAX_ANISOTROPY GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
+        #elif defined(GL_MAX_TEXTURE_MAX_ANISOTROPY_ARB)
+        #define MAX_TEXTURE_MAX_ANISOTROPY GL_MAX_TEXTURE_MAX_ANISOTROPY_ARB
+        #elif defined(GL_MAX_TEXTURE_MAX_ANISOTROPY)
+        #define MAX_TEXTURE_MAX_ANISOTROPY GL_MAX_TEXTURE_MAX_ANISOTROPY
+        #else
+        #define MAX_TEXTURE_MAX_ANISOTROPY -1 
+        #endif
+
+        if(MAX_TEXTURE_MAX_ANISOTROPY != -1)
+            s_MAX_ANISOTROPY = gl::get_floatv(MAX_TEXTURE_MAX_ANISOTROPY);
+    }
+
+    s_MAX_TEXTURE_SIZE = gl::get_intv(GL_MAX_TEXTURE_SIZE);
+    s_MAX_3D_TEXTURE_SIZE = gl::get_intv(GL_MAX_3D_TEXTURE_SIZE);
+    s_MAX_CUBE_MAP_TEXTURE_SIZE = gl::get_intv(GL_MAX_CUBE_MAP_TEXTURE_SIZE);
+    s_MAX_ARRAY_TEXTURE_LAYERS = gl::get_intv(GL_MAX_ARRAY_TEXTURE_LAYERS);
+    s_MAX_VERTEX_UNIFORM_COMPONENTS = gl::get_intv(GL_MAX_VERTEX_UNIFORM_COMPONENTS);
+    s_MAX_FRAGMENT_UNIFORM_COMPONENTS = gl::get_intv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS);
+    s_MAX_UNIFORM_BLOCK_SIZE = gl::get_intv(GL_MAX_UNIFORM_BLOCK_SIZE);
+    s_MAX_UNIFORM_BUFFER_BINDINGS = gl::get_intv(GL_MAX_UNIFORM_BUFFER_BINDINGS);
+    s_MAX_COMBINED_UNIFORM_BLOCKS = gl::get_intv(GL_MAX_COMBINED_UNIFORM_BLOCKS);
+    s_MAX_RENDERBUFFER_SIZE = gl::get_intv(GL_MAX_RENDERBUFFER_SIZE);
+    s_MAX_COLOR_ATTACHMENTS = gl::get_intv(GL_MAX_COLOR_ATTACHMENTS);
 }
 
 auto OpenGL::window() const -> const CWindow&

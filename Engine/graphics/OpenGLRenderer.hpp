@@ -24,7 +24,6 @@ public:
     auto clear_screen(uint32_t buffersmask) const -> void  override;
     auto stats() const -> RenderStats override;
     auto gpu_time_elapsed() const -> std::unordered_map<std::string, uint64_t>& override;
-    auto batch_size() const -> int32_t override;
 
     constexpr static size_t TEXT_BATCH_SIZE = 4096;
 
@@ -65,6 +64,4 @@ private:
     mutable RenderStats m_Stats;
     mutable uint32_t m_Frame;
     mutable std::unordered_map<std::string, uint64_t> m_Gpu_time_elaped;
-
-    inline static int32_t BATCH_SIZE;
 };
