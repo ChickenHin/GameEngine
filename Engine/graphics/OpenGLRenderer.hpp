@@ -9,6 +9,7 @@
 #include <memory>
 #include <cstdint>
 #include <unordered_map>
+#include <vector>
 
 class ENGINE_EXPORT OpenGLRenderer final: public IRenderer
 {
