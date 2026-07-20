@@ -13,6 +13,7 @@
 #include "emath/uvec2.hpp"
 #include "gl.hpp"
 
+#include <GL/glcorearb.h>
 #include <core/Log.hpp>
 #include <core/Exception.hpp>
 
@@ -127,9 +128,8 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
     {
         // set texture uints
         m_Scene.Program->use();
-        BATCH_SIZE = gl::get_intv(GL_MAX_TEXTURE_IMAGE_UNITS);
         static const std::vector<int32_t> units = []{
-            std::vector<int32_t> a(BATCH_SIZE);
+            std::vector<int32_t> a(OpenGL::MAX_FRAGMENT_TEXTURE_UNITS);
             std::iota(a.begin(), a.end(), 0);
             return a;
         }();
@@ -278,7 +278,7 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
     Mesh* currentMesh = nullptr;
     
     std::vector<emath::mat4> modelMatrices;
-    modelMatrices.reserve(BATCH_SIZE);
+    modelMatrices.reserve(OpenGL::MAX_FRAGMENT_TEXTURE_UNITS);
 
     // TODO: explore idea : scene entities some freq vector and sorted by material and instanced by freq value
 
@@ -290,6 +290,7 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
         if (currentMesh != mesh) {
             currentMesh = mesh;
             gl::BindVertexArray(currentMesh->VAO);
+            gl::BindBuffer(GL_ARRAY_BUFFER, currentMesh->InstanceVBO);
             m_Stats.mesh_switch++;
         }
 
@@ -301,18 +302,18 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
 
             int32_t instanceCount = 0;
 
-            for (int32_t texUnit = 0; texUnit < BATCH_SIZE && it != group.end(); ++texUnit, ++it)
+            for (int32_t texUnit = 0; texUnit < OpenGL::MAX_FRAGMENT_TEXTURE_UNITS && it != group.end(); ++texUnit, ++it)
             {
                 modelMatrices.push_back(it->model());
 
-                // TODO instead of binding same texture to multiple slot why not see if batch can be drawed instanced or split by BATCH_SIZE (we need somehow to pass texture id)
+                // TODO instead of binding same texture to multiple slot why not see if batch can be drawed instanced or split by OpenGL::MAX_FRAGMENT_TEXTURE_UNITS (we need somehow to pass texture id)
                 gl::ActiveTexture(GL_TEXTURE0 + texUnit);
                 it->material()->diffuse()->bind();
 
                 ++instanceCount;
             }
 
-            m_Scene.Program->set_uniform("uModels[0]", modelMatrices.data(), instanceCount);
+            gl::BufferSubData(GL_ARRAY_BUFFER, 0, instanceCount * sizeof(emath::mat4), modelMatrices.data());
 
             gl::DrawElementsInstanced(
                 GL_TRIANGLES,
@@ -465,11 +466,6 @@ auto  OpenGLRenderer::set_face_cull(bool v) const -> void
         gl::Enable(GL_CULL_FACE);
         gl::CullFace(GL_BACK);
     }  else gl::Disable(GL_CULL_FACE);
-}
-
-auto OpenGLRenderer::batch_size() const -> int32_t
-{
-    return BATCH_SIZE;
 }
 
 auto OpenGLRenderer::gpu_time_elapsed() const -> std::unordered_map<std::string, uint64_t>&

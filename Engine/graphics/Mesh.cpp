@@ -1,10 +1,14 @@
 #include "Mesh.hpp"
 
 #include "gl.hpp"
+#include "OpenGL.hpp"
 
+#include <GL/glcorearb.h>
 #include <core/Log.hpp>
 #include <core/Exception.hpp>
 #include <core/res.hpp>
+
+#include <emath/mat4.hpp>
 
 #include <cstdio>
 #include <cstring>
@@ -140,6 +144,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint16_t>& ind
     , VAO(gl::create_vertex_array())
     , VBO(gl::create_array_buffer())
     , IBO(gl::create_index_buffer())
+    , InstanceVBO(gl::create_array_buffer("Instance Models"))
 {
     gl::BindVertexArray(VAO);
 
@@ -152,6 +157,29 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint16_t>& ind
     uint32_t index = 0;
     for(auto a : {attribs::position, attribs::normals, attribs::texCoords}){
         attribs::set_attribute(index++, a);
+    }
+
+    gl::BindBuffer(GL_ARRAY_BUFFER, InstanceVBO);
+    gl::BufferData(GL_ARRAY_BUFFER, OpenGL::MAX_FRAGMENT_TEXTURE_UNITS * sizeof(emath::mat4), nullptr, GL_STREAM_DRAW);
+
+    // mat4 Model locations 3,4,5,6
+    for (int i = 0; i < 4; i++)
+    {
+        gl::EnableVertexAttribArray(3 + i);
+
+        gl::VertexAttribPointer(
+            3 + i,
+            4,
+            GL_FLOAT,
+            GL_FALSE,
+            sizeof(emath::mat4),
+            (void*)(sizeof(float) * 4 * i)
+        );
+
+        gl::VertexAttribDivisor(
+            3 + i,
+            1
+        );
     }
 }
 

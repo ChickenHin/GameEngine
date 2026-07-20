@@ -43,7 +43,7 @@ public:
   public:
     std::vector<Vertex> m_Vertices;
     std::vector<uint16_t> m_Indices;
-    uint32_t VAO, VBO, IBO;
+    uint32_t VAO, VBO, IBO, InstanceVBO;
 };
 
 ENGINE_EXPORT std::pair<std::vector<Mesh::Vertex>, std::vector<uint16_t>> load_obj(const char* obj);

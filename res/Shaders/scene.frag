@@ -40,7 +40,7 @@ void main()
     );
 
     vec3 albedo = sampler_at(uDiffuseMaps, Uv, InstanceID).rgb;
-   
+
     vec3 ambient  = Sun.Ambient * albedo;
     vec3 diffuse  = diff * Sun.Color * albedo;
     vec3 specular = spec * Sun.Color * 0.35;
