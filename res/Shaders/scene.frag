@@ -5,7 +5,7 @@ flat in int InstanceID;
 
 out vec4 FragColor;
 
-uniform sampler2D uDiffuseMaps[MAX_TEXTURE_IMAGE_UNITS];
+uniform sampler2D uDiffuseMaps[MAX_FRAGMENT_TEXTURE_UNITS];
 
 layout(std140) uniform Camera
 {

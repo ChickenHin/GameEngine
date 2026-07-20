@@ -14,7 +14,7 @@ layout(std140) uniform Camera
     vec3 Position;
 } Cam;
 
-uniform mat4 uModels[MAX_TEXTURE_IMAGE_UNITS];
+uniform mat4 uModels[MAX_FRAGMENT_TEXTURE_UNITS];
 
 void main() {
     InstanceID = gl_InstanceID;
