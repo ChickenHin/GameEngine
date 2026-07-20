@@ -66,14 +66,14 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
     }
     , m_Scene {
         std::make_shared<ShaderProgram>("res/shaders/scene.vert", "res/shaders/scene.frag", "Scene"),
-        gl::create_querie("Scene Time Elapsed")
+        gl::create_querie("Scene Time Elapsed"),
+        std::vector<emath::mat4>(OpenGL::MAX_FRAGMENT_TEXTURE_UNITS)
 
     }
     , m_SkyBox {
         std::make_shared<ShaderProgram>("res/shaders/skybox.vert", "res/shaders/skybox.frag", "SkyBox"),
         Texture::texture_cubemap("res/textures/forest.jpg"),
         gl::create_querie("SkyBox Time Elapsed")
-
     }
     , m_Text {
         text,
@@ -275,36 +275,23 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
     m_Scene.Program->use();
     m_Stats.pipeline_switch++;
 
-    Mesh* currentMesh = nullptr;
-    
-    std::vector<emath::mat4> modelMatrices;
-    modelMatrices.reserve(OpenGL::MAX_FRAGMENT_TEXTURE_UNITS);
-
     // TODO: explore idea : scene entities some freq vector and sorted by material and instanced by freq value
-
     for (auto group : Entities)
     {
-
         Mesh* mesh = group.begin()->mesh().get();
 
-        if (currentMesh != mesh) {
-            currentMesh = mesh;
-            gl::BindVertexArray(currentMesh->VAO);
-            gl::BindBuffer(GL_ARRAY_BUFFER, currentMesh->InstanceVBO);
-            m_Stats.mesh_switch++;
-        }
+        gl::BindVertexArray(mesh->VAO);
+        m_Stats.mesh_switch++;
 
         auto it = group.begin();
 
         while (it != group.end())
         {
-            modelMatrices.clear();
-
             int32_t instanceCount = 0;
 
             for (int32_t texUnit = 0; texUnit < OpenGL::MAX_FRAGMENT_TEXTURE_UNITS && it != group.end(); ++texUnit, ++it)
             {
-                modelMatrices.push_back(it->model());
+                m_Scene.model_matrices[texUnit] = it->model();
 
                 // TODO instead of binding same texture to multiple slot why not see if batch can be drawed instanced or split by OpenGL::MAX_FRAGMENT_TEXTURE_UNITS (we need somehow to pass texture id)
                 gl::ActiveTexture(GL_TEXTURE0 + texUnit);
@@ -313,7 +300,8 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
                 ++instanceCount;
             }
 
-            gl::BufferSubData(GL_ARRAY_BUFFER, 0, instanceCount * sizeof(emath::mat4), modelMatrices.data());
+            gl::BindBuffer(GL_ARRAY_BUFFER, mesh->InstanceVBO);
+            gl::BufferSubData(GL_ARRAY_BUFFER, 0, instanceCount * sizeof(emath::mat4), m_Scene.model_matrices.data());
 
             gl::DrawElementsInstanced(
                 GL_TRIANGLES,
@@ -326,7 +314,6 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
             m_Stats.draw_call++;
             m_Stats.vertices += mesh->vertex_size() * instanceCount;
             m_Stats.indices  += mesh->indices_size() * instanceCount;
-            modelMatrices.clear();
         }
     }
 
