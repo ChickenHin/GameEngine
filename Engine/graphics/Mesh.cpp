@@ -160,7 +160,6 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint16_t>& ind
     }
 
     gl::BindBuffer(GL_ARRAY_BUFFER, InstanceVBO);
-    gl::BufferData(GL_ARRAY_BUFFER, OpenGL::MAX_FRAGMENT_TEXTURE_UNITS * sizeof(emath::mat4), nullptr, GL_STREAM_DRAW);
 
     // mat4 Model locations 3,4,5,6
     for (int i = 0; i < 4; i++)

@@ -302,7 +302,7 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
             }
 
             gl::BindBuffer(GL_ARRAY_BUFFER, mesh->InstanceVBO);
-            gl::BufferSubData(GL_ARRAY_BUFFER, 0, instanceCount * sizeof(emath::mat4), m_Scene.model_matrices.data());
+            gl::BufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(emath::mat4), m_Scene.model_matrices.data(), GL_STREAM_DRAW);
 
             gl::DrawElementsInstanced(
                 GL_TRIANGLES,
