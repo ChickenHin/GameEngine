@@ -91,8 +91,6 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
         {m_Text.Program->name(), 0}
         ,{"TimeStamp", 0}
     }
-    , startQuery(gl::create_querie("Start"))
-    , endQuery(gl::create_querie("End"))
 {
 
     set_depth(true);
@@ -142,7 +140,6 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
 
 auto OpenGLRenderer::render(const Scene& scene) const -> void
 {
-    gl::query_timestamp(startQuery);
     {
         auto& cam = scene.main_camera();
 
