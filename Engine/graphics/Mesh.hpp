@@ -4,6 +4,7 @@
 
 #include <emath/vec2.hpp>
 #include <emath/vec3.hpp>
+#include <emath/mat4.hpp>
 
 #include <engine_export.h>
 
@@ -17,6 +18,12 @@ public:
     emath::vec3 Position;
     emath::vec3 Normal;
     emath::vec2 TexCoords;
+  };
+
+  struct Instance
+  {
+    emath::mat4 Model;
+    int32_t tex;
   };
 
 public:

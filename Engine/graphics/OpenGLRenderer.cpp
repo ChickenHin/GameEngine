@@ -66,9 +66,7 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
     }
     , m_Scene {
         std::make_shared<ShaderProgram>("res/shaders/scene.vert", "res/shaders/scene.frag", "Scene"),
-        gl::create_querie("Scene Time Elapsed"),
-        std::vector<emath::mat4>(OpenGL::MAX_FRAGMENT_TEXTURE_UNITS)
-
+        gl::create_querie("Scene Time Elapsed")
     }
     , m_SkyBox {
         std::make_shared<ShaderProgram>("res/shaders/skybox.vert", "res/shaders/skybox.frag", "SkyBox"),
@@ -275,6 +273,7 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
 
     m_Scene.Program->use();
     m_Stats.pipeline_switch++;
+    
 
     // TODO: explore idea : scene entities some freq vector and sorted by material and instanced by freq value
     for (auto group : Entities)
@@ -285,6 +284,7 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
         m_Stats.mesh_switch++;
 
         auto it = group.begin();
+        
 
         while (it != group.end())
         {
@@ -292,17 +292,19 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
 
             for (int32_t texUnit = 0; texUnit < OpenGL::MAX_FRAGMENT_TEXTURE_UNITS && it != group.end(); ++texUnit, ++it)
             {
-                m_Scene.model_matrices[texUnit] = it->model();
-
-                // TODO instead of binding same texture to multiple slot why not see if batch can be drawed instanced or split by OpenGL::MAX_FRAGMENT_TEXTURE_UNITS (we need somehow to pass texture id)
                 gl::ActiveTexture(GL_TEXTURE0 + texUnit);
                 it->material()->diffuse()->bind();
+
+                m_Scene.InstanceData.emplace_back(
+                    it->model(),
+                    texUnit
+                );
 
                 ++instanceCount;
             }
 
             gl::BindBuffer(GL_ARRAY_BUFFER, mesh->InstanceVBO);
-            gl::BufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(emath::mat4), m_Scene.model_matrices.data(), GL_STREAM_DRAW);
+            gl::BufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(Mesh::Instance), m_Scene.InstanceData.data(), GL_STREAM_DRAW);
 
             gl::DrawElementsInstanced(
                 GL_TRIANGLES,
@@ -315,6 +317,8 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
             m_Stats.draw_call++;
             m_Stats.vertices += mesh->vertex_size() * instanceCount;
             m_Stats.indices  += mesh->indices_size() * instanceCount;
+
+            m_Scene.InstanceData.clear();
         }
     }
 

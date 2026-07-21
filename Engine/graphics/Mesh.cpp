@@ -161,8 +161,8 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint16_t>& ind
 
     gl::BindBuffer(GL_ARRAY_BUFFER, InstanceVBO);
 
-    // mat4 Model locations 3,4,5,6
-    for (int i = 0; i < 4; i++)
+    // mat4 columns: locations 3,4,5,6
+    for (GLuint i = 0; i < 4; i++)
     {
         gl::EnableVertexAttribArray(3 + i);
 
@@ -171,15 +171,25 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint16_t>& ind
             4,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(emath::mat4),
-            (void*)(sizeof(float) * 4 * i)
+            sizeof(Instance),
+            (void*)(offsetof(Instance, Model) + + sizeof(float) * 4 * i)
         );
 
-        gl::VertexAttribDivisor(
-            3 + i,
-            1
-        );
+        gl::VertexAttribDivisor(3 + i, 1);
     }
+
+    // int32_t tex at location 7
+    gl::EnableVertexAttribArray(7);
+
+    gl::VertexAttribIPointer(
+        7,
+        1,
+        GL_INT,
+        sizeof(Instance),
+        (void*)offsetof(Instance, tex)
+    );
+
+    gl::VertexAttribDivisor(7, 1);
 }
 
 Mesh::Mesh(std::pair<std::vector<Vertex>, std::vector<uint16_t>> vert_inds)

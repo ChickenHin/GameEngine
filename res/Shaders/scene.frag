@@ -1,7 +1,7 @@
 in vec3 Normal;
 in vec3 WorldPos;
 in vec2 Uv;
-flat in int InstanceID;
+flat in int Tex;
 
 out vec4 FragColor;
 
@@ -39,7 +39,7 @@ void main()
         32.0
     );
 
-    vec3 albedo = sampler_at(uDiffuseMaps, Uv, InstanceID).rgb;
+    vec3 albedo = sampler_at(uDiffuseMaps, Uv, Tex).rgb;
 
     vec3 ambient  = Sun.Ambient * albedo;
     vec3 diffuse  = diff * Sun.Color * albedo;

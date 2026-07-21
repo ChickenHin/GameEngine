@@ -1,6 +1,7 @@
 #pragma once
 #include "Renderer.hpp"
 #include "OpenGL.hpp"
+#include "Mesh.hpp"
 
 #include <engine_export.h>
 
@@ -48,7 +49,7 @@ private:
     struct {
         std::shared_ptr<class ShaderProgram> Program;
         uint32_t time_elapsed;
-        mutable std::vector<emath::mat4> model_matrices;
+        mutable std::vector<Mesh::Instance> InstanceData;
     } m_Scene;
 
     struct {
