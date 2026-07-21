@@ -358,26 +358,18 @@ auto OpenGLRenderer::text_pass() const -> void {
     m_Text.Program->set_uniform("u_Texture", 0);
 
     gl::BindVertexArray(m_Text.VAO);
-    gl::BindBuffer(GL_ARRAY_BUFFER, m_Text.VBO);
     m_Stats.texture_switch++;
+    
+    auto text_glyphs_data = m_Text.Text.glyphs().data();
+    auto text_glyphs_size = int32_t(m_Text.Text.glyphs().size());
 
-    auto text_glyphs = m_Text.Text.glyphs();
+    gl::BindBuffer(GL_ARRAY_BUFFER, m_Text.VBO);
+    gl::BufferData(GL_ARRAY_BUFFER, text_glyphs_size * sizeof(Text::Glyph), text_glyphs_data, GL_STREAM_DRAW);
 
-    for (size_t offset = 0; offset < text_glyphs.size(); offset += TEXT_BATCH_SIZE)
-    {
-        auto batchCount = std::min(TEXT_BATCH_SIZE, text_glyphs.size() - offset);
-        ptrdiff_t bytesToCopy = batchCount * sizeof(Text::Glyph);
+    gl::DrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, text_glyphs_size);
 
-        void* mappedMemory = gl::MapBufferRange(GL_ARRAY_BUFFER, 0, bytesToCopy, GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
-
-        if (mappedMemory) {
-            m_Stats.vertices += 4;
-            std::memcpy(mappedMemory, text_glyphs.data() + offset, bytesToCopy);
-            gl::UnmapBuffer(GL_ARRAY_BUFFER);
-            gl::DrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, static_cast<int32_t>(batchCount));
-            m_Stats.draw_call++;
-        }
-    }
+    m_Stats.draw_call++;
+    m_Stats.vertices += 4 * text_glyphs_size;
 
     m_Text.Text.clear_glyphs();
     m_Text.Text.clear();
@@ -411,7 +403,6 @@ auto OpenGLRenderer::prepare_text_buffers() -> void {
 
     // Dynamic instance VBO
     gl::BindBuffer(GL_ARRAY_BUFFER, m_Text.VBO);
-    gl::BufferData(GL_ARRAY_BUFFER, TEXT_BATCH_SIZE * sizeof(Text::Glyph), nullptr, GL_STREAM_DRAW);
 
     // Offset (2 * 4 byte)
     gl::EnableVertexAttribArray(0);

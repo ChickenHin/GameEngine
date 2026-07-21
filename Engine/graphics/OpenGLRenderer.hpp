@@ -29,8 +29,6 @@ public:
     auto stats() const -> RenderStats override;
     auto gpu_time_elapsed() const -> std::unordered_map<std::string, uint64_t>& override;
 
-    constexpr static size_t TEXT_BATCH_SIZE = 4096;
-
 private:
     auto prepare_text_buffers() -> void;
 
