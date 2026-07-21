@@ -504,7 +504,7 @@ auto gl::get_query_object_ui64(GLuint id, GLenum pname, GLuint64* param) -> void
 #define TIME_ELAPSED 0
 #endif
 
-auto gl::get_query_time_elapsed(GLuint id, GLuint64* ns) -> void
+auto gl::get_query_if_available(GLuint id, GLuint64* ns) -> void
 {
     GLuint available{};
     gl::GetQueryObjectuiv(id, GL_QUERY_RESULT_AVAILABLE, &available);
@@ -522,6 +522,19 @@ auto gl::begin_query_time_elapsed(GLuint id) -> void
 auto gl::end_query_time_elapsed() -> void
 {
     gl::EndQuery(TIME_ELAPSED);
+}
+
+auto gl::query_timestamp(GLuint id) -> void
+{
+    #if defined(CORE_GL)
+    GET_GLEXT_FUNCTION_THROW(glQueryCounter);
+    glQueryCounter_ext(id, GL_TIMESTAMP);
+    #else
+    if(gl::extensions().contains("GL_EXT_disjoint_timer_query")){
+        GET_GLEXT_FUNCTION_THROW(GL_TIMESTAMP_EXT);
+        QueryCounterEXT_ext(id, GL_TIMESTAMP_EXT);
+    }
+    #endif
 }
 
 auto gl::texture_param_anisotropic(GLenum target) -> void

@@ -89,7 +89,10 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
         {m_Scene.Program->name(), 0},
         {m_SkyBox.Program->name(), 0},
         {m_Text.Program->name(), 0}
+        ,{"TimeStamp", 0}
     }
+    , startQuery(gl::create_querie("Start"))
+    , endQuery(gl::create_querie("End"))
 {
 
     set_depth(true);
@@ -139,6 +142,7 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
 
 auto OpenGLRenderer::render(const Scene& scene) const -> void
 {
+    gl::query_timestamp(startQuery);
     {
         auto& cam = scene.main_camera();
 
@@ -219,9 +223,9 @@ auto OpenGLRenderer::render(const Scene& scene) const -> void
     gl::DepthMask(GL_TRUE);
     gl::DepthFunc(GL_LESS);
 
-    gl::get_query_time_elapsed(m_Scene.time_elapsed, &m_Gpu_time_elaped[m_Scene.Program->name()]);
-    gl::get_query_time_elapsed(m_SkyBox.time_elapsed, &m_Gpu_time_elaped[m_SkyBox.Program->name()]);
-    gl::get_query_time_elapsed(m_Text.time_elapsed, &m_Gpu_time_elaped[m_Text.Program->name()]);
+    gl::get_query_if_available(m_Scene.time_elapsed, &m_Gpu_time_elaped[m_Scene.Program->name()]);
+    gl::get_query_if_available(m_SkyBox.time_elapsed, &m_Gpu_time_elaped[m_SkyBox.Program->name()]);
+    gl::get_query_if_available(m_Text.time_elapsed, &m_Gpu_time_elaped[m_Text.Program->name()]);
 
     m_Frame++;
 }

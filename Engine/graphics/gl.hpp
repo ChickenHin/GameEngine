@@ -184,9 +184,12 @@ namespace gl {
     auto get_query_object_i64(GLuint id, GLenum pname, GLint64* param) -> void;
     auto get_query_object_ui64(GLuint id, GLenum pname, GLuint64* param) -> void;
 
-    auto get_query_time_elapsed(GLuint id, GLuint64* ns) -> void;
+    auto get_query_if_available(GLuint id, GLuint64* ns) -> void;
+
     auto begin_query_time_elapsed(GLuint id) -> void;
     auto end_query_time_elapsed() -> void;
+
+    auto query_timestamp(GLuint id) -> void;
 
     auto get_boolv (GLenum pname) -> bool;
     auto get_floatv (GLenum pname) -> float;
