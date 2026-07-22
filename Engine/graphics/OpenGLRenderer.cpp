@@ -232,7 +232,6 @@ auto OpenGLRenderer::depthpre_pass(const Scene& scene) const -> void
     gl::ColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
     m_Depth.Program->use();
-    m_Stats.pipeline_switch++;
 
     Mesh* currentMesh = nullptr;
 
@@ -246,11 +245,9 @@ auto OpenGLRenderer::depthpre_pass(const Scene& scene) const -> void
         {
             currentMesh = mesh;
             gl::BindVertexArray(mesh->VAO);
-            m_Stats.mesh_switch++;
         }
 
         gl::DrawElements(GL_TRIANGLES, int32_t(mesh->indices_size()), GL_UNSIGNED_SHORT, (void*)0);
-        m_Stats.draw_call++;
     }
 
     gl::ColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -272,36 +269,42 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
     );
 
     m_Scene.Program->use();
-    m_Stats.pipeline_switch++;
     
-
-    // TODO: explore idea : scene entities some freq vector and sorted by material and instanced by freq value
     for (auto group : Entities)
     {
         Mesh* mesh = group.begin()->mesh().get();
 
         gl::BindVertexArray(mesh->VAO);
-        m_Stats.mesh_switch++;
+        m_Stats.unique_mesh++;
 
         auto it = group.begin();
-        
 
         while (it != group.end())
         {
+            std::vector<uint32_t> textureList;
+            std::unordered_map<uint32_t, int32_t> texToUnit;
+
             int32_t instanceCount = 0;
 
-            for (int32_t texUnit = 0; texUnit < OpenGL::MAX_FRAGMENT_TEXTURE_UNITS && it != group.end(); ++texUnit, ++it)
+            for (;int32_t(textureList.size()) < OpenGL::MAX_FRAGMENT_TEXTURE_UNITS && it != group.end(); ++it)
             {
-                gl::ActiveTexture(GL_TEXTURE0 + texUnit);
-                it->material()->diffuse()->bind();
+                uint32_t texID = it->material()->diffuse()->id();
 
-                m_Scene.InstanceData.emplace_back(
-                    it->model(),
-                    texUnit
-                );
-
+                if (auto [iter, inserted] = texToUnit.try_emplace(texID, static_cast<int32_t>(textureList.size())); inserted) {
+                    textureList.push_back(texID);
+                }
+                m_Scene.InstanceData.emplace_back(it->model(), texToUnit[texID]);
                 ++instanceCount;
             }
+
+            for (size_t i = 0; i < textureList.size(); ++i) {
+                gl::ActiveTexture(GL_TEXTURE0 + static_cast<int32_t>(i));
+                gl::BindTexture(GL_TEXTURE_2D, textureList[i]);
+            }
+
+            std::vector<int32_t> units(textureList.size());
+            std::iota(units.begin(), units.end(), 0);
+            m_Scene.Program->set_uniform("uDiffuseMaps[0]", units.data(), units.size());
 
             gl::BindBuffer(GL_ARRAY_BUFFER, mesh->InstanceVBO);
             gl::BufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(Mesh::Instance), m_Scene.InstanceData.data(), GL_STREAM_DRAW);
@@ -331,17 +334,13 @@ auto OpenGLRenderer::skybox_pass() const -> void
 
 
     m_SkyBox.Program->use();
-    m_Stats.pipeline_switch++;
 
     gl::ActiveTexture(GL_TEXTURE0);
     m_SkyBox.Texture->bind();
     m_SkyBox.Program->set_uniform("uDiffuseMap", 0);
-    m_Stats.texture_switch++;
 
-    m_Stats.vertices += 3;
     // gl::BindVertexArray(VAO);
     gl::DrawArrays(GL_TRIANGLES, 0, 3);
-    m_Stats.draw_call++;
 
     gl::pop_debug_group();
 }
@@ -353,7 +352,6 @@ auto OpenGLRenderer::text_pass() const -> void {
     m_Text.Text.fill_text_buffer(width, height);
 
     m_Text.Program->use();
-    m_Stats.pipeline_switch++;
 
     m_Text.Program->set_uniform("u_Color", Text::DEFAULT_FONT_COLOR);
 
@@ -362,7 +360,6 @@ auto OpenGLRenderer::text_pass() const -> void {
     m_Text.Program->set_uniform("u_Texture", 0);
 
     gl::BindVertexArray(m_Text.VAO);
-    m_Stats.texture_switch++;
     
     auto text_glyphs_data = m_Text.Text.glyphs().data();
     auto text_glyphs_size = int32_t(m_Text.Text.glyphs().size());
@@ -371,9 +368,6 @@ auto OpenGLRenderer::text_pass() const -> void {
     gl::BufferData(GL_ARRAY_BUFFER, text_glyphs_size * sizeof(Text::Glyph), text_glyphs_data, GL_STREAM_DRAW);
 
     gl::DrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, text_glyphs_size);
-
-    m_Stats.draw_call++;
-    m_Stats.vertices += 4 * text_glyphs_size;
 
     m_Text.Text.clear_glyphs();
     m_Text.Text.clear();

@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <unordered_map>
 #include <string>
+#include <cstring>
 
 enum class DrawMode {
     Triangles = 0,
@@ -15,22 +16,12 @@ enum class DrawMode {
 
 struct RenderStats
 {
-    size_t pipeline_switch = 0;
-    size_t texture_switch = 0;
-    size_t mesh_switch = 0;
+    size_t unique_mesh = 0;
     size_t draw_call = 0;
     size_t vertices = 0;
     size_t indices = 0;
 
-    void reset()
-    {
-        pipeline_switch = 0;
-        texture_switch = 0;
-        mesh_switch = 0;
-        draw_call = 0;
-        vertices = 0;
-        indices = 0;
-    }
+    auto reset() -> void { std::memset(this, 0, sizeof(*this)); }
 };
 
 class ENGINE_EXPORT IRenderer
