@@ -45,12 +45,14 @@ private:
     struct {
         std::shared_ptr<class ShaderProgram> Program;
         uint32_t time_elapsed;
+        mutable std::vector<emath::mat4> model_data;
     } m_Depth;
 
     struct {
         std::shared_ptr<class ShaderProgram> Program;
         uint32_t time_elapsed;
-        mutable std::vector<Mesh::Instance> InstanceData;
+        mutable std::vector<emath::mat4> model_data;
+        mutable std::vector<int32_t> tex_data;
     } m_Scene;
 
     struct {

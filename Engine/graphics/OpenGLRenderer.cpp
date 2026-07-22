@@ -249,26 +249,25 @@ auto OpenGLRenderer::depthpre_pass(const Scene& scene) const -> void
 
     for (const auto& group : Entities)
     {
-        Mesh* mesh = group.begin()->mesh().get();
-        auto size = std::distance(group.begin(), group.end());
+        m_Depth.model_data.clear();
 
-        m_Scene.InstanceData.clear();
+        Mesh* mesh = group.begin()->mesh().get();
 
         for (const auto& e : group) {
-            m_Scene.InstanceData.emplace_back(e.model(), 0);
+            m_Depth.model_data.emplace_back(e.model());
         }
 
         gl::BindVertexArray(mesh->VAO);
 
-        gl::BindBuffer(GL_ARRAY_BUFFER, mesh->InstanceVBO);
-        gl::BufferData(GL_ARRAY_BUFFER, size * sizeof(Mesh::Instance), m_Scene.InstanceData.data(), GL_STREAM_DRAW);
+        gl::BindBuffer(GL_ARRAY_BUFFER, mesh->modelVBO);
+        gl::BufferData(GL_ARRAY_BUFFER, m_Depth.model_data.size() * sizeof(decltype( m_Depth.model_data)::value_type), m_Depth.model_data.data(), GL_STREAM_DRAW);
 
         gl::DrawElementsInstanced(
             GL_TRIANGLES,
             int32_t(mesh->indices_size()),
             GL_UNSIGNED_SHORT,
             nullptr,
-            size
+            m_Depth.model_data.size()
         );
     }
 
@@ -303,12 +302,11 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
 
         while (it != group.end())
         {
-            m_Scene.InstanceData.clear();
+            m_Scene.model_data.clear();
+            m_Scene.tex_data.clear();
 
             std::vector<uint32_t> textureList;
             std::unordered_map<uint32_t, int32_t> texToUnit;
-
-            int32_t instanceCount = 0;
 
             for (;int32_t(textureList.size()) < OpenGL::MAX_FRAGMENT_TEXTURE_UNITS && it != group.end(); ++it)
             {
@@ -317,8 +315,8 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
                 if (auto [iter, inserted] = texToUnit.try_emplace(texID, static_cast<int32_t>(textureList.size())); inserted) {
                     textureList.push_back(texID);
                 }
-                m_Scene.InstanceData.emplace_back(it->model(), texToUnit[texID]);
-                ++instanceCount;
+                m_Scene.model_data.emplace_back(it->model());
+                m_Scene.tex_data.emplace_back(texToUnit[texID]);
             }
 
             for (size_t i = 0; i < textureList.size(); ++i) {
@@ -330,20 +328,25 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
             std::iota(units.begin(), units.end(), 0);
             m_Scene.Program->set_uniform("uDiffuseMaps[0]", units.data(), units.size());
 
-            gl::BindBuffer(GL_ARRAY_BUFFER, mesh->InstanceVBO);
-            gl::BufferData(GL_ARRAY_BUFFER, instanceCount * sizeof(Mesh::Instance), m_Scene.InstanceData.data(), GL_STREAM_DRAW);
+            // send models matrix
+            gl::BindBuffer(GL_ARRAY_BUFFER, mesh->modelVBO);
+            gl::BufferData(GL_ARRAY_BUFFER, m_Scene.model_data.size() * sizeof(decltype(m_Scene.model_data)::value_type), m_Scene.model_data.data(), GL_STREAM_DRAW);
+
+            // send texture slot id
+            gl::BindBuffer(GL_ARRAY_BUFFER, mesh->texVBO);
+            gl::BufferData(GL_ARRAY_BUFFER, m_Scene.tex_data.size() * sizeof(decltype(m_Scene.tex_data)::value_type), m_Scene.tex_data.data(), GL_STREAM_DRAW);
 
             gl::DrawElementsInstanced(
                 GL_TRIANGLES,
                 int32_t(mesh->indices_size()),
                 GL_UNSIGNED_SHORT,
                 nullptr,
-                instanceCount
+                m_Scene.model_data.size()
             );
 
             m_Stats.draw_call++;
-            m_Stats.vertices += mesh->vertex_size() * instanceCount;
-            m_Stats.indices  += mesh->indices_size() * instanceCount;
+            m_Stats.vertices += mesh->vertex_size() * m_Scene.model_data.size();
+            m_Stats.indices  += mesh->indices_size() * m_Scene.model_data.size();
         }
     }
 

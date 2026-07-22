@@ -20,12 +20,6 @@ public:
     emath::vec2 TexCoords;
   };
 
-  struct Instance
-  {
-    emath::mat4 Model;
-    int32_t tex;
-  };
-
 public:
     friend struct std::formatter<Mesh>;
     Mesh(const std::vector<Vertex>& vertices, const std::vector<uint16_t>& indices);
@@ -50,7 +44,7 @@ public:
   public:
     std::vector<Vertex> m_Vertices;
     std::vector<uint16_t> m_Indices;
-    uint32_t VAO, VBO, IBO, InstanceVBO;
+    uint32_t VAO, VBO, IBO, modelVBO, texVBO;
 };
 
 ENGINE_EXPORT std::pair<std::vector<Mesh::Vertex>, std::vector<uint16_t>> load_obj(const char* obj);

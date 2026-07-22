@@ -144,7 +144,8 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint16_t>& ind
     , VAO(gl::create_vertex_array())
     , VBO(gl::create_array_buffer())
     , IBO(gl::create_index_buffer())
-    , InstanceVBO(gl::create_array_buffer("Instance Models"))
+    , modelVBO(gl::create_array_buffer("Model"))
+    , texVBO(gl::create_array_buffer("Texture ID"))
 {
     gl::BindVertexArray(VAO);
 
@@ -159,7 +160,7 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint16_t>& ind
         attribs::set_attribute(index++, a);
     }
 
-    gl::BindBuffer(GL_ARRAY_BUFFER, InstanceVBO);
+    gl::BindBuffer(GL_ARRAY_BUFFER, modelVBO);
 
     // mat4 columns: locations 3,4,5,6
     for (GLuint i = 0; i < 4; i++)
@@ -171,12 +172,14 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint16_t>& ind
             4,
             GL_FLOAT,
             GL_FALSE,
-            sizeof(Instance),
-            (void*)(offsetof(Instance, Model) + + sizeof(float) * 4 * i)
+            sizeof(emath::mat4),
+            (void*)(sizeof(float) * 4 * i)
         );
 
         gl::VertexAttribDivisor(3 + i, 1);
     }
+
+    gl::BindBuffer(GL_ARRAY_BUFFER, texVBO);
 
     // int32_t tex at location 7
     gl::EnableVertexAttribArray(7);
@@ -185,10 +188,9 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<uint16_t>& ind
         7,
         1,
         GL_INT,
-        sizeof(Instance),
-        (void*)offsetof(Instance, tex)
+        sizeof(int32_t),
+        (void*)0
     );
-
     gl::VertexAttribDivisor(7, 1);
 }
 
