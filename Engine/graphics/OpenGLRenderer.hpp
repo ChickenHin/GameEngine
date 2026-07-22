@@ -44,6 +44,7 @@ private:
 
     struct {
         std::shared_ptr<class ShaderProgram> Program;
+        uint32_t time_elapsed;
     } m_Depth;
 
     struct {

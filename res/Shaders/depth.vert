@@ -1,4 +1,5 @@
 layout(location = 0) in vec3 aPosition;
+layout (location = 3) in mat4 aModel;
 
 layout(std140) uniform Camera
 {
@@ -7,9 +8,8 @@ layout(std140) uniform Camera
     vec3 Position;
 } Cam;
 
-uniform mat4 Model;
 
 void main()
 {
-    gl_Position = Cam.Projection * Cam.View * Model * vec4(aPosition, 1.0);
+    gl_Position = Cam.Projection * Cam.View * aModel * vec4(aPosition, 1.0);
 }

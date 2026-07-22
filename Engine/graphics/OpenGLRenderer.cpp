@@ -62,7 +62,8 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
     : m_GApi(ctx)
     , m_DrawMode(DrawMode::Triangles)
     , m_Depth {
-        std::make_shared<ShaderProgram>("res/shaders/depth.vert", "res/shaders/depth.frag", "Depth pre-pass")
+        std::make_shared<ShaderProgram>("res/shaders/depth.vert", "res/shaders/depth.frag", "Depth pre-pass"),
+        gl::create_querie("Depth Time Elapsed")
     }
     , m_Scene {
         std::make_shared<ShaderProgram>("res/shaders/scene.vert", "res/shaders/scene.frag", "Scene"),
@@ -84,10 +85,10 @@ OpenGLRenderer::OpenGLRenderer(const OpenGL& ctx, Text& text)
     , m_Stats()
     , m_Frame(0)
     , m_Gpu_time_elaped {
+        {m_Depth.Program->name(), 0},
         {m_Scene.Program->name(), 0},
         {m_SkyBox.Program->name(), 0},
         {m_Text.Program->name(), 0}
-        ,{"TimeStamp", 0}
     }
 {
 
@@ -189,13 +190,17 @@ auto OpenGLRenderer::render(const Scene& scene) const -> void
 
     gl::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     // TODO: enable when im fragment-bound
-    // gl::DepthMask(GL_TRUE);
-    // gl::DepthFunc(GL_LESS);
-    // depthpre_pass(scene);
+    {
+        gl::begin_query_time_elapsed(m_Depth.time_elapsed);
+        gl::DepthMask(GL_TRUE);
+        gl::DepthFunc(GL_LESS);
+        depthpre_pass(scene);
+        gl::end_query_time_elapsed();
+    }
     {
         gl::begin_query_time_elapsed(m_Scene.time_elapsed);
-        // gl::DepthMask(GL_FALSE);
-        // gl::DepthFunc(GL_LEQUAL);
+        gl::DepthMask(GL_FALSE);
+        gl::DepthFunc(GL_LEQUAL);
         scene_pass(scene);
         gl::end_query_time_elapsed();
     }
@@ -215,9 +220,11 @@ auto OpenGLRenderer::render(const Scene& scene) const -> void
         text_pass();
         gl::end_query_time_elapsed();
     }
+
     gl::DepthMask(GL_TRUE);
     gl::DepthFunc(GL_LESS);
 
+    gl::get_query_if_available(m_Depth.time_elapsed, &m_Gpu_time_elaped[m_Depth.Program->name()]);
     gl::get_query_if_available(m_Scene.time_elapsed, &m_Gpu_time_elaped[m_Scene.Program->name()]);
     gl::get_query_if_available(m_SkyBox.time_elapsed, &m_Gpu_time_elaped[m_SkyBox.Program->name()]);
     gl::get_query_if_available(m_Text.time_elapsed, &m_Gpu_time_elaped[m_Text.Program->name()]);
@@ -233,21 +240,36 @@ auto OpenGLRenderer::depthpre_pass(const Scene& scene) const -> void
 
     m_Depth.Program->use();
 
-    Mesh* currentMesh = nullptr;
-
-    for (const auto& obj : scene.entities())
-    {
-        auto mesh = obj.mesh().get();
-
-        m_Depth.Program->set_uniform("Model", obj.model());
-
-        if (currentMesh != mesh)
+    auto Entities = scene.entities() | std::views::chunk_by(
+        [](const GameObject& a, const GameObject& b)
         {
-            currentMesh = mesh;
-            gl::BindVertexArray(mesh->VAO);
+            return a.mesh() == b.mesh();
+        }
+    );
+
+    for (const auto& group : Entities)
+    {
+        Mesh* mesh = group.begin()->mesh().get();
+        auto size = std::distance(group.begin(), group.end());
+
+        m_Scene.InstanceData.clear();
+
+        for (const auto& e : group) {
+            m_Scene.InstanceData.emplace_back(e.model(), 0);
         }
 
-        gl::DrawElements(GL_TRIANGLES, int32_t(mesh->indices_size()), GL_UNSIGNED_SHORT, (void*)0);
+        gl::BindVertexArray(mesh->VAO);
+
+        gl::BindBuffer(GL_ARRAY_BUFFER, mesh->InstanceVBO);
+        gl::BufferData(GL_ARRAY_BUFFER, size * sizeof(Mesh::Instance), m_Scene.InstanceData.data(), GL_STREAM_DRAW);
+
+        gl::DrawElementsInstanced(
+            GL_TRIANGLES,
+            int32_t(mesh->indices_size()),
+            GL_UNSIGNED_SHORT,
+            nullptr,
+            size
+        );
     }
 
     gl::ColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -281,6 +303,8 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
 
         while (it != group.end())
         {
+            m_Scene.InstanceData.clear();
+
             std::vector<uint32_t> textureList;
             std::unordered_map<uint32_t, int32_t> texToUnit;
 
@@ -320,8 +344,6 @@ auto OpenGLRenderer::scene_pass(const Scene& scene) const -> void
             m_Stats.draw_call++;
             m_Stats.vertices += mesh->vertex_size() * instanceCount;
             m_Stats.indices  += mesh->indices_size() * instanceCount;
-
-            m_Scene.InstanceData.clear();
         }
     }
 
