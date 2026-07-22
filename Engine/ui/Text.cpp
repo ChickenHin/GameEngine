@@ -5,6 +5,7 @@
 
 #include <string>
 #include <cmath>
+#include <algorithm>
 #include <bit>
 
 Text::Text()
@@ -18,10 +19,13 @@ auto Text::text(std::string text, emath::vec2 pos) -> void {
 }
 
 auto Text::draw(std::string text) -> void {
+     auto lines = 1 + std::count(text.begin(), text.end(), '\n');
     this->text(std::move(text), m_Cursor);
 
+    float lineHeight = (m_Font.ascent() - m_Font.descent() + m_Font.linegap()) * m_Font.pixel_scale(DEFAULT_FONT_SIZE);
+
     m_Cursor.x = 0.0f;
-    m_Cursor.y += DEFAULT_FONT_SIZE;
+    m_Cursor.y += lineHeight * lines;
 }
 
 auto Text::bitmap(int32_t w, int32_t h) -> std::vector<uint8_t>
@@ -53,6 +57,8 @@ auto Text::fill_text_buffer(int32_t width, int32_t height) -> void
     auto linegap = m_Font.linegap();
 
     m_Cursor = emath::vec2(0.0f);
+    m_TextGlyphs.clear();
+
     for (const auto& [pos, text] : m_Text) {
         float start_x = pos.x;
         float x = start_x;
@@ -92,8 +98,6 @@ auto Text::fill_text_buffer(int32_t width, int32_t height) -> void
             glyph_advance();
         }
     }
-
-    if (m_TextGlyphs.empty()) return;
 }
 
 auto Text::glyphs() const -> const std::vector<Glyph>&
