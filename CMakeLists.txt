@@ -21,9 +21,6 @@ include(Coverage)
 include(CompilerFlags)
 
 if(WIN32)
-    if($<CONFIG:Release>)
-        set(CMAKE_WIN32_EXECUTABLE ON)
-    endif()
     add_definitions(-DNOMINMAX)
 else()
     add_definitions(-DAPIENTRY=)
@@ -67,7 +64,7 @@ if(NOT COVERAGE AND NOT MSVC AND NOT PROFILING_MODE)
     check_ipo_supported(RESULT IPO_SUPPORTED OUTPUT output)
 
     if(IPO_SUPPORTED)
-        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
     endif()
 endif()
 

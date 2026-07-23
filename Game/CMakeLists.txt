@@ -6,6 +6,7 @@ if(ANDROID)
   add_library(Game SHARED)
 else()
   add_executable(Game)
+  set_target_properties(Game PROPERTIES WIN32_EXECUTABLE $<CONFIG:Release>)
 endif()
 
 target_sources(Game PRIVATE Game.cpp )
