@@ -189,7 +189,6 @@ auto OpenGLRenderer::render(const Scene& scene) const -> void
     }
 
     gl::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    // TODO: enable when im fragment-bound
     {
         gl::begin_query_time_elapsed(m_Depth.time_elapsed);
         gl::DepthMask(GL_TRUE);

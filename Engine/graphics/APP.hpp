@@ -31,16 +31,22 @@ public:
     APP();
     auto run() -> void ;
     auto fps() const -> float;
+    auto stable_fps() const -> float;
     auto set_game(IGame* g) -> void;
 
-    static auto loop_body(void* ctx) -> void;
+    static auto frame(void* ctx) -> void;
 
 private:
-    auto frame() -> void;
+    auto event_dispatch() -> void;
+    auto input_update() -> void;
+    auto draw_metrics_stats() -> void;
+    auto draw_cpu_timelapsed() -> void;
+    auto draw_gpu_timelapsed() -> void;
+    auto debug_overlay() -> void;
 
 private:
     bool m_Running;
-    float m_Fps;
+    float m_dt;
 
 public:
     ::CWindow Window;
@@ -53,4 +59,6 @@ private:
     std::unique_ptr<IRenderer> Renderer;
 
     IGame* Game;
+
+    mutable std::unordered_map<std::string, float> m_Cpu_time_elaped;
 };

@@ -14,6 +14,6 @@ auto APP::run() -> void {
             if (g_android_app->destroyRequested != 0) m_Running = false;
         }
 
-        if (m_Running && g_android_app->window != nullptr) APP::loop_body(this);
+        if (m_Running && g_android_app->window != nullptr) APP::frame(this);
     }
 }

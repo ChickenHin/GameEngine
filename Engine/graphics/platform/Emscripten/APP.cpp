@@ -3,5 +3,5 @@
 
 auto APP::run() -> void
 {
-    emscripten_set_main_loop_arg(loop_body, this, 0, 1);
+    emscripten_set_main_loop_arg(frame, this, 0, 1);
 }
