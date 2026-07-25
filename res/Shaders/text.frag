@@ -15,5 +15,8 @@ layout(std140) uniform Globle
 
 void main() {
     vec2 atlasSize = vec2(textureSize(u_Texture, 0));
-    FragColor = vec4(u_Color, texture(u_Texture, v_TexCoord / atlasSize).r);
+    vec2 uv = v_TexCoord / atlasSize;
+    float glyph = texture(u_Texture, uv).r;
+
+    FragColor = vec4(u_Color, glyph);
 }

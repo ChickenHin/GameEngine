@@ -229,9 +229,16 @@ auto APP::draw_gpu_timelapsed() -> void
 
 auto APP::debug_overlay() -> void
 {
-    draw_metrics_stats();
-    draw_cpu_timelapsed();
-    draw_gpu_timelapsed();
+    static bool on = false;
+    if(Keyboard.is_pressed(Key::H) ){
+        on = !on ? true : false;
+    }
+
+    if(on) {
+        draw_metrics_stats();
+        draw_cpu_timelapsed();
+        draw_gpu_timelapsed();
+    }
 }
 
 auto APP::input_update() -> void
