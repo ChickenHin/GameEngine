@@ -31,22 +31,7 @@ public:
     auto material() const                                    -> std::shared_ptr<class Material> ;
 
 private:
-    Transform m_Transform;
+    emath::mat4 m_model;
     std::shared_ptr<class Material> m_Material;
     std::shared_ptr<class Mesh> m_Mesh;
 };
-
-#ifdef __cpp_lib_formatters
-// custom GameObject Format
-template<>
-struct std::formatter<GameObject> {
-  constexpr auto parse(std::format_parse_context& context) {
-    return context.begin();
-  }
-  auto format(const GameObject& obj, auto& context) const {
-    return std::format_to(context.out(),
-    R"({{ "transform": {} }})",
-    obj.m_Transform);
-  }
-};
-#endif
