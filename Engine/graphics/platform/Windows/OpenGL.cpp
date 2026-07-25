@@ -46,20 +46,22 @@ auto OpenGL::create_context() -> GL_CTX
     auto dummy_surface = GetDC(dummy_window);
 
     PIXELFORMATDESCRIPTOR pfd = {
-        sizeof(PIXELFORMATDESCRIPTOR),
-        1,
-        PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-        PFD_TYPE_RGBA,
-        static_cast<BYTE>(8 * 3),  // RGB bits
-        static_cast<BYTE>(8),         // Alpha bits
-        0, 0, 0, 0, 
-        0, 0, 0, 0, 
-        0, 0, 0, 0, 
-        static_cast<BYTE>(24),// Depth buffer
-        static_cast<BYTE>(8), // Stencil buffer
-        0,
-        PFD_MAIN_PLANE,
-        0, 0, 0
+        .nSize = sizeof(PIXELFORMATDESCRIPTOR),
+        .nVersion = 0x0001,
+        .dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+        .iPixelType = PFD_TYPE_RGBA,
+        .cColorBits = BYTE{8 * 3},
+        .cRedBits = BYTE{8}, .cRedShift = 0,
+        .cGreenBits = 0, .cGreenShift = 0,
+        .cBlueBits = 0, .cBlueShift = 0,
+        .cAlphaBits = 0, .cAlphaShift = 0,
+        .cAccumBits = 0, .cAccumRedBits = 0, .cAccumGreenBits = 0, .cAccumBlueBits = 0, .cAccumAlphaBits = 0, 
+        .cDepthBits = BYTE{24},
+        .cStencilBits = BYTE{8},
+        .cAuxBuffers = 0,
+        .iLayerType = PFD_MAIN_PLANE,
+        .bReserved = 0, 
+        .dwLayerMask = 0, .dwVisibleMask = 0, .dwDamageMask = 0
     };
 
     auto pixel_format = ChoosePixelFormat(dummy_surface, &pfd);
