@@ -50,9 +50,10 @@ OpenGL::OpenGL([[maybe_unused]] const CWindow& window)
     auto Version = version ? version : "unknown";
     auto GlslVersion = glsl_version ? glsl_version : "unknown";
 
-    if constexpr (DEBUG) enable_debug();
-
+    check_extensions();
     init_max_members();
+
+    if constexpr (DEBUG) enable_debug();
 
     logg::info(os::build_info());
     logg::info("===================================[GL Info]=========================================");
@@ -97,8 +98,8 @@ auto OpenGL::init_max_members() -> void
     s_MAX_MSAA = gl::get_intv(GL_MAX_SAMPLES);
 
     if (
-        gl::extensions().contains("GL_EXT_texture_filter_anisotropic") ||
-        gl::extensions().contains("GL_ARB_texture_filter_anisotropic")
+        OpenGL::is_GL_EXT_texture_filter_anisotropic ||
+        OpenGL::is_GL_ARB_texture_filter_anisotropic
     ){
         #if defined(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)
         #define MAX_TEXTURE_MAX_ANISOTROPY GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
@@ -202,7 +203,7 @@ auto OpenGL::enable_debug() const -> void
     // Enable Opengl debug
     #if defined(CORE_GL)
 
-    if (PACK(m_Major, m_Minor) >= PACK(4,3) || gl::extensions().contains("GL_KHR_debug")) {
+    if (PACK(m_Major, m_Minor) >= PACK(4,3) || OpenGL::is_GL_KHR_debug) {
 
         GET_GLEXT_FUNCTION_THROW(glDebugMessageCallback);
         GET_GLEXT_FUNCTION_THROW(glDebugMessageControl);
@@ -231,7 +232,7 @@ auto OpenGL::enable_debug() const -> void
         );
         #endif
 
-    } else if(gl::extensions().contains("GL_ARB_debug_output")) {
+    } else if(OpenGL::is_GL_ARB_debug_output) {
         GET_GLEXT_FUNCTION_THROW(glDebugMessageCallbackARB);
         GET_GLEXT_FUNCTION_THROW(glDebugMessageControlARB);
         gl::Enable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
@@ -281,6 +282,18 @@ auto OpenGL::load_functions() -> void
     FUNCTIONS_GL_LIST
     #undef FUNC_GL_X
 }
+
+auto OpenGL::check_extensions() -> void
+{
+    auto exts = gl::extensions();
+
+    is_GL_KHR_debug = exts.contains("GL_KHR_debug");
+    is_GL_ARB_debug_output = exts.contains("GL_ARB_debug_output");
+    is_GL_EXT_disjoint_timer_query = exts.contains("GL_EXT_disjoint_timer_query");
+    is_GL_EXT_texture_filter_anisotropic = exts.contains("GL_EXT_texture_filter_anisotropic");
+    is_GL_ARB_texture_filter_anisotropic = exts.contains("GL_ARB_texture_filter_anisotropic");
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 auto gl::extensions() -> std::string
@@ -303,7 +316,7 @@ auto gl::extensions() -> std::string
 auto gl::push_debug_group(const char* name) -> void
 {
     #ifdef CORE_GL
-    if (PACK(OpenGL::MIN_REQUIRED_MAJOR_VERSION, OpenGL::MIN_REQUIRED_MINOR_VERSION) >= PACK(4,3) || gl::extensions().contains("GL_KHR_debug")) {
+    if (PACK(OpenGL::MIN_REQUIRED_MAJOR_VERSION, OpenGL::MIN_REQUIRED_MINOR_VERSION) >= PACK(4,3) || OpenGL::is_GL_KHR_debug) {
         static uint32_t id{};
         GET_GLEXT_FUNCTION_THROW(glPushDebugGroup);
         glPushDebugGroup_ext(GL_DEBUG_SOURCE_APPLICATION, id++, -1, name);
@@ -314,7 +327,7 @@ auto gl::push_debug_group(const char* name) -> void
 auto gl::pop_debug_group() -> void
 {
     #ifdef CORE_GL
-    if (PACK(OpenGL::MIN_REQUIRED_MAJOR_VERSION, OpenGL::MIN_REQUIRED_MINOR_VERSION) >= PACK(4,3) || gl::extensions().contains("GL_KHR_debug")) {
+    if (PACK(OpenGL::MIN_REQUIRED_MAJOR_VERSION, OpenGL::MIN_REQUIRED_MINOR_VERSION) >= PACK(4,3) || OpenGL::is_GL_KHR_debug) {
         GET_GLEXT_FUNCTION_THROW(glPopDebugGroup);
         glPopDebugGroup_ext();
     }
@@ -324,7 +337,7 @@ auto gl::pop_debug_group() -> void
 static auto ObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar *label) -> void
 {
     #ifdef CORE_GL
-    if (PACK(OpenGL::MIN_REQUIRED_MAJOR_VERSION, OpenGL::MIN_REQUIRED_MINOR_VERSION) >= PACK(4,3) || gl::extensions().contains("GL_KHR_debug")) {
+    if (PACK(OpenGL::MIN_REQUIRED_MAJOR_VERSION, OpenGL::MIN_REQUIRED_MINOR_VERSION) >= PACK(4,3) || OpenGL::is_GL_KHR_debug) {
         GET_GLEXT_FUNCTION_THROW(glObjectLabel);
         glObjectLabel_ext(identifier, name, length, label);
     }
@@ -476,7 +489,7 @@ auto gl::get_query_object_i64(GLuint id, GLenum pname, GLint64* param) -> void
         GET_GLEXT_FUNCTION_THROW(glGetQueryObjecti64v);
         glGetQueryObjecti64v_ext(id, pname, param);
     #else
-        if(gl::extensions().contains("GL_EXT_disjoint_timer_query")){
+        if(OpenGL::is_GL_EXT_disjoint_timer_query){
             GET_GLEXT_FUNCTION_THROW(glGetQueryObjecti64vEXT);
             glGetQueryObjecti64vEXT_ext(id, pname, param);
         }
@@ -489,7 +502,7 @@ auto gl::get_query_object_ui64(GLuint id, GLenum pname, GLuint64* param) -> void
         GET_GLEXT_FUNCTION_THROW(glGetQueryObjectui64v);
         glGetQueryObjectui64v_ext(id, pname, param);
     #else
-        if(gl::extensions().contains("GL_EXT_disjoint_timer_query")){
+        if(OpenGL::is_GL_EXT_disjoint_timer_query){
             GET_GLEXT_FUNCTION_THROW(glGetQueryObjectui64vEXT);
             glGetQueryObjectui64vEXT_ext(id, pname, param);
         }
@@ -530,7 +543,7 @@ auto gl::query_timestamp(GLuint id) -> void
     GET_GLEXT_FUNCTION_THROW(glQueryCounter);
     glQueryCounter_ext(id, GL_TIMESTAMP);
     #else
-    if(gl::extensions().contains("GL_EXT_disjoint_timer_query")){
+    if(OpenGL::is_GL_EXT_disjoint_timer_query){
         GET_GLEXT_FUNCTION_THROW(GL_TIMESTAMP_EXT);
         QueryCounterEXT_ext(id, GL_TIMESTAMP_EXT);
     }
@@ -550,8 +563,8 @@ auto gl::texture_param_anisotropic(GLenum target) -> void
     #endif
 
     if (
-        gl::extensions().contains("GL_EXT_texture_filter_anisotropic") ||
-        gl::extensions().contains("GL_ARB_texture_filter_anisotropic")
+        OpenGL::is_GL_EXT_texture_filter_anisotropic ||
+        OpenGL::is_GL_ARB_texture_filter_anisotropic
     ){
         gl::TexParameterf(target, TEXTURE_MAX_ANISOTROPY, OpenGL::ANISOTROPY);
     }

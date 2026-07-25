@@ -45,6 +45,7 @@ class ENGINE_EXPORT OpenGL
         auto resolve_function(const char* name) -> void*;
         auto load_functions() -> void;
         auto init_max_members() -> void;
+        auto check_extensions() -> void;
 
     private:
         const CWindow& m_Window;
@@ -87,4 +88,11 @@ class ENGINE_EXPORT OpenGL
         inline static const int32_t& MAX_COMBINED_UNIFORM_BLOCKS = s_MAX_COMBINED_UNIFORM_BLOCKS;
         inline static const int32_t& MAX_RENDERBUFFER_SIZE = s_MAX_RENDERBUFFER_SIZE;
         inline static const int32_t& MAX_COLOR_ATTACHMENTS = s_MAX_COLOR_ATTACHMENTS;
+
+    public:
+        inline static bool is_GL_KHR_debug{false};
+        inline static bool is_GL_ARB_debug_output{false};
+        inline static bool is_GL_EXT_disjoint_timer_query{false};
+        inline static bool is_GL_EXT_texture_filter_anisotropic{false};
+        inline static bool is_GL_ARB_texture_filter_anisotropic{false};
 };
