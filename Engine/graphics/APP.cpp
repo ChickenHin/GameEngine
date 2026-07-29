@@ -7,6 +7,7 @@
 #include "Window.hpp"
 #include "OpenGL.hpp"
 #include "OpenGLRenderer.hpp"
+#include "gl.hpp"
 
 #include <core/SysInfo.hpp>
 #include <core/Log.hpp>
@@ -90,9 +91,9 @@ auto APP::frame(void* ctx) -> void
 
     {
         auto start = std::chrono::steady_clock::now();
-        app->Game->update(std::min(app->m_dt, 0.1f));
+        app->Renderer->render(app->Game->Scene);
         auto end = std::chrono::steady_clock::now();
-        app->m_Cpu_time_elaped["game_update"] = std::chrono::duration<float, std::milli>(end - start).count();
+        app->m_Cpu_time_elaped["render"] = std::chrono::duration<float, std::milli>(end - start).count();
     }
 
     {
@@ -104,9 +105,16 @@ auto APP::frame(void* ctx) -> void
 
     {
         auto start = std::chrono::steady_clock::now();
-        app->Renderer->render(app->Game->Scene);
+        gl::Flush();
         auto end = std::chrono::steady_clock::now();
-        app->m_Cpu_time_elaped["render"] = std::chrono::duration<float, std::milli>(end - start).count();
+        app->m_Cpu_time_elaped["glFlush"] = std::chrono::duration<float, std::milli>(end - start).count();
+    }
+
+    {
+        auto start = std::chrono::steady_clock::now();
+        app->Game->update(std::min(app->m_dt, 0.1f));
+        auto end = std::chrono::steady_clock::now();
+        app->m_Cpu_time_elaped["game_update"] = std::chrono::duration<float, std::milli>(end - start).count();
     }
 
     {

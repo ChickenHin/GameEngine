@@ -151,6 +151,7 @@ static auto func##_ext = [](){\
     FUNC_GL_X(EndQuery)\
     FUNC_GL_X(GetQueryiv)\
     FUNC_GL_X(GetQueryObjectuiv)\
+    FUNC_GL_X(Flush)\
     FUNC_GL_X(UnmapBuffer)\
     FUNC_GL_X(MapBufferRange)
 

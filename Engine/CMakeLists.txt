@@ -104,7 +104,8 @@ execute_process(
     ERROR_QUIET
 )
 
-target_compile_definitions(Engine PRIVATE
+target_compile_definitions(Engine
+PRIVATE
     EG_SYSTEM_HOST_NAME="${CMAKE_HOST_SYSTEM_NAME}"
     EG_SYSTEM_HOST_VERSION="${CMAKE_HOST_SYSTEM_VERSION}"
     EG_SYSTEM_HOST_ARCH="${CMAKE_HOST_SYSTEM_PROCESSOR}"
@@ -114,7 +115,6 @@ target_compile_definitions(Engine PRIVATE
 
     EG_COMPILER_NAME="${CMAKE_CXX_COMPILER_ID}"
     EG_COMPILER_VERSION="${CMAKE_CXX_COMPILER_VERSION}"
-    EG_BUILD_CONFIG="$<CONFIG>"
 
     EG_CXX_STANDARD="${CMAKE_CXX_STANDARD}"
 
@@ -124,4 +124,7 @@ target_compile_definitions(Engine PRIVATE
     EG_DYN_LIB_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}"
 
     EG_GIT_HASH="${GIT_HASH}"
+
+PUBLIC
+    EG_BUILD_CONFIG="$<CONFIG>"
 )

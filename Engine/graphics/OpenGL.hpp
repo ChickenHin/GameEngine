@@ -1,5 +1,5 @@
 #pragma once
-#include <string>
+#include <string_view>
 #include <utility>
 
 #include "gl.inl"
@@ -35,7 +35,7 @@ class ENGINE_EXPORT OpenGL
         constexpr static int32_t MIN_REQUIRED_MAJOR_VERSION = 3;
         constexpr static int32_t MIN_REQUIRED_MINOR_VERSION = api == API::CORE ? 3 : 0;
 
-        constexpr static bool   DEBUG = true;
+        constexpr static bool   DEBUG = std::string_view{EG_BUILD_CONFIG} == "Debug" ? true : false;
         constexpr static size_t MSAA  = 2;
         constexpr static float ANISOTROPY = 2.0f;
 

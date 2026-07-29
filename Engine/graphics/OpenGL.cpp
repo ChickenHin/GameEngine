@@ -200,6 +200,8 @@ auto OpenGL::is_current() const -> bool
 
 auto OpenGL::enable_debug() const -> void
 {
+    if constexpr (!DEBUG) return;
+ 
     // Enable Opengl debug
     #if defined(CORE_GL)
 
@@ -315,6 +317,8 @@ auto gl::extensions() -> std::string
 
 auto gl::push_debug_group(const char* name) -> void
 {
+    if constexpr (!OpenGL::DEBUG) return;
+
     #ifdef CORE_GL
     if (PACK(OpenGL::MIN_REQUIRED_MAJOR_VERSION, OpenGL::MIN_REQUIRED_MINOR_VERSION) >= PACK(4,3) || OpenGL::is_GL_KHR_debug) {
         static uint32_t id{};
@@ -326,6 +330,8 @@ auto gl::push_debug_group(const char* name) -> void
 
 auto gl::pop_debug_group() -> void
 {
+    if constexpr (!OpenGL::DEBUG) return;
+
     #ifdef CORE_GL
     if (PACK(OpenGL::MIN_REQUIRED_MAJOR_VERSION, OpenGL::MIN_REQUIRED_MINOR_VERSION) >= PACK(4,3) || OpenGL::is_GL_KHR_debug) {
         GET_GLEXT_FUNCTION_THROW(glPopDebugGroup);
@@ -336,6 +342,8 @@ auto gl::pop_debug_group() -> void
 
 static auto ObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar *label) -> void
 {
+    if constexpr (!OpenGL::DEBUG) return;
+
     #ifdef CORE_GL
     if (PACK(OpenGL::MIN_REQUIRED_MAJOR_VERSION, OpenGL::MIN_REQUIRED_MINOR_VERSION) >= PACK(4,3) || OpenGL::is_GL_KHR_debug) {
         GET_GLEXT_FUNCTION_THROW(glObjectLabel);
@@ -346,6 +354,8 @@ static auto ObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GL
 
 auto gl::label_texture(uint32_t id, const char* name) -> void
 {
+    if constexpr (!OpenGL::DEBUG) return;
+
     #ifndef GL_TEXTURE
     #define GL_TEXTURE 0
     #endif
@@ -360,6 +370,8 @@ auto gl::label_texture(uint32_t id, const char* name) -> void
 
 auto gl::label_vertex_array(uint32_t id, const char* name) -> void
 {
+    if constexpr (!OpenGL::DEBUG) return;
+
     #ifndef GL_VERTEX_ARRAY
     #define GL_VERTEX_ARRAY 0
     #endif
@@ -374,6 +386,8 @@ auto gl::label_vertex_array(uint32_t id, const char* name) -> void
 
 auto gl::label_array_buffer(uint32_t id, const char* name) -> void
 {
+    if constexpr (!OpenGL::DEBUG) return;
+
     #ifndef GL_BUFFER
     #define GL_BUFFER 0
     #endif
@@ -388,6 +402,8 @@ auto gl::label_array_buffer(uint32_t id, const char* name) -> void
 
 auto gl::label_index_buffer(uint32_t id, const char* name) -> void
 {
+    if constexpr (!OpenGL::DEBUG) return;
+
     #ifndef GL_BUFFER
     #define GL_BUFFER 0
     #endif
@@ -402,6 +418,8 @@ auto gl::label_index_buffer(uint32_t id, const char* name) -> void
 
 auto gl::label_uniform_buffer(uint32_t id, const char* name) -> void
 {
+    if constexpr (!OpenGL::DEBUG) return;
+
     #ifndef GL_BUFFER
     #define GL_BUFFER 0
     #endif
@@ -416,6 +434,8 @@ auto gl::label_uniform_buffer(uint32_t id, const char* name) -> void
 
 auto gl::label_shader(uint32_t id, GLenum type, const char* name) -> void
 {
+    if constexpr (!OpenGL::DEBUG) return;
+
     #ifndef GL_SHADER
     #define GL_SHADER 0
     #endif
@@ -436,6 +456,8 @@ auto gl::label_shader(uint32_t id, GLenum type, const char* name) -> void
 
 auto gl::label_program(uint32_t id, const char* name) -> void
 {
+    if constexpr (!OpenGL::DEBUG) return;
+
     #ifndef GL_PROGRAM
     #define GL_PROGRAM 0
     #endif
@@ -450,6 +472,8 @@ auto gl::label_program(uint32_t id, const char* name) -> void
 
 auto gl::label_querie(uint32_t id, const char* name) -> void
 {
+    if constexpr (!OpenGL::DEBUG) return;
+
     #ifndef GL_QUERY
     #define GL_QUERY 0
     #endif
