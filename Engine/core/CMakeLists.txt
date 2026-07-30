@@ -13,6 +13,7 @@ target_sources( core
     ${CMAKE_CURRENT_SOURCE_DIR}/stacktrace.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/res.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Utils.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Profiler.cpp
   PUBLIC
   FILE_SET headers
     TYPE HEADERS
@@ -28,4 +29,5 @@ target_sources( core
       ${CMAKE_CURRENT_SOURCE_DIR}/DynLib.hpp
       ${CMAKE_CURRENT_SOURCE_DIR}/SysInfo.hpp
       ${CMAKE_CURRENT_SOURCE_DIR}/res.hpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/Profiler.hpp
 )

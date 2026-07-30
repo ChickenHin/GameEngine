@@ -12,6 +12,7 @@
 #include <core/SysInfo.hpp>
 #include <core/Log.hpp>
 #include <core/Event.hpp>
+#include <core/Profiler.hpp>
 
 #include <inputs/Keyboard.hpp>
 #include <inputs/Mouse.hpp>
@@ -48,88 +49,46 @@ struct overloaded : Ts... { using Ts::operator()...; };
 
 auto APP::frame(void* ctx) -> void
 {
+    PROFILE_FUNCTION();
+
+    auto frame_start = std::chrono::steady_clock::now();
+
     auto app = static_cast<APP*>(ctx);
 
-    // --- frame time ---
-    static auto lastTime = std::chrono::steady_clock::now();
-    auto now = std::chrono::steady_clock::now();
-    app->m_dt = std::chrono::duration<float>(now - lastTime).count();
-    lastTime = now;
+    app->process_events();
+    app->render();
+    app->debug_overlay();
+    app->render_flush();
+    app->game_update();
+    app->swap_buffers();
+    app->input_update();
 
-    {
-        auto start = std::chrono::steady_clock::now();
-        app->Window.poll_events();
-        app->event_dispatch();
-        auto end = std::chrono::steady_clock::now();
-        app->m_Cpu_time_elaped["event_dispatch"] = std::chrono::duration<float, std::milli>(end - start).count();
-    }
+    auto frame_end = std::chrono::steady_clock::now();
+    app->m_dt = std::chrono::duration<float>(frame_end - frame_start).count();
+}
 
-    {
-        auto start = std::chrono::steady_clock::now();
+auto APP::render() -> void
+{
+    PROFILE_FUNCTION();
+    Renderer->render(Game->Scene);
+}
 
-        // TODO move to the visit
-        // Fullscreen 
-        if(app->Keyboard.is_pressed(Key::F11)){
-            app->Window.toggle_fullscreen();
-        }
+auto APP::render_flush() -> void
+{
+    PROFILE_FUNCTION();
+    gl::Flush();
+}
 
-        // Lock Mouse
-        if(app->Keyboard.is_pressed(Key::L) ){
-            static bool on = false;
-            if(!on){
-                app->Mouse.lock(app->Window);
-                on = true;
-            }else{
-                app->Mouse.unlock();
-                on = false;
-            }
-        }
+auto APP::game_update() -> void
+{
+    PROFILE_FUNCTION();
+    Game->update(m_dt);
+}
 
-        auto end = std::chrono::steady_clock::now();
-        app->m_Cpu_time_elaped["custom events"] = std::chrono::duration<float, std::milli>(end - start).count();
-    }
-
-    {
-        auto start = std::chrono::steady_clock::now();
-        app->Renderer->render(app->Game->Scene);
-        auto end = std::chrono::steady_clock::now();
-        app->m_Cpu_time_elaped["render"] = std::chrono::duration<float, std::milli>(end - start).count();
-    }
-
-    {
-        auto start = std::chrono::steady_clock::now();
-        app->debug_overlay();
-        auto end = std::chrono::steady_clock::now();
-        app->m_Cpu_time_elaped["debug_overlay"] = std::chrono::duration<float, std::milli>(end - start).count();
-    }
-
-    {
-        auto start = std::chrono::steady_clock::now();
-        gl::Flush();
-        auto end = std::chrono::steady_clock::now();
-        app->m_Cpu_time_elaped["glFlush"] = std::chrono::duration<float, std::milli>(end - start).count();
-    }
-
-    {
-        auto start = std::chrono::steady_clock::now();
-        app->Game->update(std::min(app->m_dt, 0.1f));
-        auto end = std::chrono::steady_clock::now();
-        app->m_Cpu_time_elaped["game_update"] = std::chrono::duration<float, std::milli>(end - start).count();
-    }
-
-    {
-        auto start = std::chrono::steady_clock::now();
-        app->Window.swap_buffers();
-        auto end = std::chrono::steady_clock::now();
-        app->m_Cpu_time_elaped["swap_buffers"] = std::chrono::duration<float, std::milli>(end - start).count();
-    }
-
-    {
-        auto start = std::chrono::steady_clock::now();
-        app->input_update();
-        auto end = std::chrono::steady_clock::now();
-        app->m_Cpu_time_elaped["input_update"] = std::chrono::duration<float, std::milli>(end - start).count();
-    }
+auto APP::swap_buffers() -> void
+{
+    PROFILE_FUNCTION();
+    Window.swap_buffers();
 }
 
 auto APP::event_dispatch() -> void
@@ -200,26 +159,26 @@ auto APP::draw_metrics_stats() -> void
 
 auto APP::draw_cpu_timelapsed() -> void
 {
-    static float accumulated = 1.0f;
-    accumulated += m_dt;
+    // static float accumulated = 1.0f;
+    // accumulated += m_dt;
 
-    static std::string s_elp_time;
-    static std::string elp_time;
+    // static std::string s_elp_time;
+    // static std::string elp_time;
 
-    if (accumulated >= 1.0f) {
-        float totale_elp_time{};
-        elp_time += "CPU Time Elapsed:\n";
-        for(auto& [n, v] : m_Cpu_time_elaped){
-            elp_time += std::format("\t{} : {:.4f} ms\n", n, v);
-            totale_elp_time += v;
-        }
-        elp_time += std::format("\ttotale: [{:.4f} ms] ({})\n", totale_elp_time, std::round(1000.0f/totale_elp_time));
-        s_elp_time = std::move(elp_time);
-        accumulated = 0.0f;
-    }
+    // if (accumulated >= 1.0f) {
+    //     float totale_elp_time{};
+    //     elp_time += "CPU Time Elapsed:\n";
+    //     for(auto& [n, v] : Timer::storage){
+    //         elp_time += std::format("\t{} : {:.4f} ms\n", n, v);
+    //         totale_elp_time += v;
+    //     }
+    //     elp_time += std::format("\ttotale: [{:.4f} ms] ({})\n", totale_elp_time, std::round(1000.0f/totale_elp_time));
+    //     s_elp_time = std::move(elp_time);
+    //     accumulated = 0.0f;
+    // }
 
-    if (!s_elp_time.empty())
-        UiText.draw(s_elp_time);
+    // if (!s_elp_time.empty())
+    //     UiText.draw(s_elp_time);
 }
 
 auto APP::draw_gpu_timelapsed() -> void
@@ -237,6 +196,8 @@ auto APP::draw_gpu_timelapsed() -> void
 
 auto APP::debug_overlay() -> void
 {
+    PROFILE_FUNCTION();
+
     static bool on = false;
     if(Keyboard.is_pressed(Key::H) ){
         on = !on ? true : false;
@@ -251,8 +212,35 @@ auto APP::debug_overlay() -> void
 
 auto APP::input_update() -> void
 {
+    PROFILE_FUNCTION();
     Keyboard.save_prev_state();
     Mouse.save_prev_state();
+}
+
+auto APP::process_events() -> void
+{
+    PROFILE_FUNCTION();
+
+    Window.poll_events();
+    event_dispatch();
+
+    // TODO move to the visit
+    // Fullscreen 
+    if(Keyboard.is_pressed(Key::F11)){
+        Window.toggle_fullscreen();
+    }
+
+    // Lock Mouse
+    if(Keyboard.is_pressed(Key::L) ){
+        static bool on = false;
+        if(!on){
+            Mouse.lock(Window);
+            on = true;
+        }else{
+            Mouse.unlock();
+            on = false;
+        }
+    }
 }
 
 auto APP::fps() const -> float

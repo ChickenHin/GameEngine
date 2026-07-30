@@ -66,9 +66,4 @@ public:
     }
 };
 
-int main(int, char**) {
-    auto app = APP();
-    Game g(app);
-    app.set_game(&g);
-    app.run();
-}
+MAIN_FUNC_ENGINE(Game)

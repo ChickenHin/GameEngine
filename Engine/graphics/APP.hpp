@@ -38,7 +38,12 @@ public:
 
 private:
     auto event_dispatch() -> void;
+    auto process_events() -> void;
     auto input_update() -> void;
+    auto render() -> void;
+    auto render_flush() -> void;
+    auto game_update() -> void;
+    auto swap_buffers() -> void;
     auto draw_metrics_stats() -> void;
     auto draw_cpu_timelapsed() -> void;
     auto draw_gpu_timelapsed() -> void;
@@ -59,6 +64,4 @@ private:
     std::unique_ptr<IRenderer> Renderer;
 
     IGame* Game;
-
-    mutable std::unordered_map<std::string, float> m_Cpu_time_elaped;
 };

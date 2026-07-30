@@ -7,3 +7,4 @@
 #include "SysInfo.hpp"
 #include "res.hpp"
 #include "DynLib.hpp"
+#include "Profiler.hpp"
