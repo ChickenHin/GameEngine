@@ -9,4 +9,4 @@
 #include "DynLib.hpp"
 #include "SysInfo.hpp"
 #include "res.hpp"
-#include "Profiler.hpp".hpp"
+#include "Profiler.hpp"
