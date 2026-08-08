@@ -1,7 +1,7 @@
 
 add_library(core INTERFACE)
 
-collect_plt_sources(core)
+eg_collect_plt_sources(core)
 
 target_sources( core
   PRIVATE

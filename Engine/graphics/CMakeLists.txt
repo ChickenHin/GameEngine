@@ -1,7 +1,7 @@
 
 add_library(graphics INTERFACE)
 
-collect_plt_sources(graphics)
+eg_collect_plt_sources(graphics)
 
 target_sources( graphics
     PRIVATE

@@ -1,6 +1,6 @@
 add_library(project_coverage_flags INTERFACE)
 
-if(COVERAGE)
+if(EG_COVERAGE)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         find_program(GCOVR_PATH gcovr)
         find_program(GCOV_PATH NAMES "gcov-${COMPILER_MAJOR_VERSION}" "gcov")

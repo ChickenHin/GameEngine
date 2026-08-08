@@ -38,6 +38,8 @@ private:
     bool m_Stopped;
 };
 
+#if defined(EG_PROFILING)
+
 #define PROFILER_BEGIN_SESSION() Instrumentor::Get().BeginSession()
 #define PROFILER_END_SESSION() Instrumentor::Get().EndSession()
 
@@ -51,3 +53,12 @@ private:
 #endif
 
 #define PROFILE_ZONE(name) Timer _(name)
+
+#else
+
+#define PROFILER_BEGIN_SESSION()
+#define PROFILER_END_SESSION()
+#define PROFILE_FUNCTION()
+#define PROFILE_ZONE(n)
+
+#endif

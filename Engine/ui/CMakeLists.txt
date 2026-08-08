@@ -1,7 +1,7 @@
 
 add_library(ui INTERFACE)
 
-collect_plt_sources(ui)
+eg_collect_plt_sources(ui)
 
 target_sources( ui
     PRIVATE

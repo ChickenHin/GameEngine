@@ -1,5 +1,7 @@
 include(GoogleTest)
-include(helpers)
+include(eg_misc)
+
+set(EG_COVERAGE ON)
 
 add_executable(unit_tests)
 
@@ -22,5 +24,5 @@ target_link_libraries(unit_tests
         GTest::gtest GTest::gmock GTest::gtest_main
 )
 
-target_link_staticly(unit_tests PRIVATE)
+eg_target_link_staticly(unit_tests PRIVATE)
 gtest_discover_tests(unit_tests DISCOVERY_MODE PRE_TEST)

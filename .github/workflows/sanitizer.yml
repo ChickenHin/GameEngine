@@ -30,7 +30,7 @@ jobs:
         with:
           compiler: ${{ matrix.compiler }}
           build_dir: ${{ env.BUILD_DIR }}
-          cmake_flags: -DUNIT_TESTS=ON -DHARDEN=ON -DCMAKE_CXX_FLAGS="-fsanitize=${{ matrix.sanitizer }}"
+          cmake_flags: -DEG_UNIT_TESTS=ON -DEG_HARDEN=ON -DCMAKE_CXX_FLAGS="-fsanitize=${{ matrix.sanitizer }}"
 
       - name: Test
         shell: bash

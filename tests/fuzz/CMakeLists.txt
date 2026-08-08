@@ -1,4 +1,6 @@
 
+set(EG_COVERAGE ON)
+
 add_subdirectory(
     ${CMAKE_SOURCE_DIR}/3party/fuzztest
     ${CMAKE_CURRENT_BINARY_DIR}/fuzztest-build

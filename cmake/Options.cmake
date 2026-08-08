@@ -1,18 +1,15 @@
-include(CMakeDependentOption)
-include(FeatureSummary)
+include(eg_misc)
 
-option(UNIT_TESTS           "Build Unit Tests"                        OFF)
-option(FUZZ_TESTS           "Build Fuzz Tests"                        OFF)
-option(HARDEN               "Hardening"                               OFF)
-cmake_dependent_option(COVERAGE "Code coverage"  ON [[ UNIT_TESTS OR FUZZ_TESTS ]] OFF)
+set(EG_OPTIONS
+    EG_UNIT_TESTS  "Build Unit Tests"  OFF
+    EG_FUZZ_TESTS  "Build Fuzz Tests"  OFF
+    EG_HARDEN      "Hardening"         OFF
+    EG_PROFILING   "Profiling"         OFF
+    EG_COVERAGE    "Code coverage"     OFF
+    EG_ASLR_OFF    "Disable ASLR"      OFF
+)
 
-####################################################################################################
-# Print Option Status
-####################################################################################################
-
-add_feature_info(UNIT_TESTS             UNIT_TESTS           "[Build unit tests]")
-add_feature_info(FUZZ_TESTS             FUZZ_TESTS           "[Build Fuzz tests]")
-add_feature_info(COVERAGE               COVERAGE             "[Generate coverage reports]")
-add_feature_info(HARDEN                 HARDEN               "[Security hardening flags]")
+eg_options(${EG_OPTIONS})
+eg_options_defs(EG_OPTIONS)
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)

@@ -1,7 +1,7 @@
 
 add_library(inputs INTERFACE)
 
-collect_plt_sources(inputs)
+eg_collect_plt_sources(inputs)
 
 target_sources( inputs
     PRIVATE
