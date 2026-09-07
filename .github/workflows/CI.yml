@@ -1,7 +1,7 @@
 name: CI
 on: 
-  push:
-    branches: [ main ]
+  # push:
+  #   branches: [ main ]
   workflow_dispatch:
 
 concurrency:
@@ -46,13 +46,13 @@ jobs:
         shell: bash
         run: ctest --test-dir "${{ env.BUILD_DIR }}" --output-on-failure
 
-      - name: Upload Test Executable on Failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit_tests-${{ runner.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}
-          path: ${{ env.BUILD_DIR }}/tests/unit/unit_tests.exe
-          retention-days: 7
+      # - name: Upload Test Executable on Failure
+      #   if: failure()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: unit_tests-${{ runner.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}
+      #     path: ${{ env.BUILD_DIR }}/tests/unit/unit_tests.exe
+      #     retention-days: 7
 
 # ======================================================================================================================
 # Windows ARM
@@ -87,13 +87,13 @@ jobs:
         shell: bash
         run: ctest --test-dir "${{ env.BUILD_DIR }}" --output-on-failure
 
-      - name: Upload Test Executable on Failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit_tests-${{ runner.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}
-          path: ${{ env.BUILD_DIR }}/tests/unit/unit_tests.exe
-          retention-days: 7
+      # - name: Upload Test Executable on Failure
+      #   if: failure()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: unit_tests-${{ runner.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}
+      #     path: ${{ env.BUILD_DIR }}/tests/unit/unit_tests.exe
+      #     retention-days: 7
 
 # ======================================================================================================================
 # Ubuntu x64
@@ -132,13 +132,13 @@ jobs:
         shell: bash
         run: ctest --test-dir "${{ env.BUILD_DIR }}" --output-on-failure
 
-      - name: Upload Test Executable on Failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit_tests-${{ runner.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}
-          path: ${{ env.BUILD_DIR }}/tests/unit/unit_tests
-          retention-days: 7
+      # - name: Upload Test Executable on Failure
+      #   if: failure()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: unit_tests-${{ runner.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}
+      #     path: ${{ env.BUILD_DIR }}/tests/unit/unit_tests
+      #     retention-days: 7
 
 # ======================================================================================================================
 # Ubuntu ARM
@@ -177,13 +177,13 @@ jobs:
         shell: bash
         run: ctest --test-dir "${{ env.BUILD_DIR }}" --output-on-failure
 
-      - name: Upload Test Executable on Failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit_tests-${{ runner.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}
-          path: ${{ env.BUILD_DIR }}/tests/unit/unit_tests
-          retention-days: 7
+      # - name: Upload Test Executable on Failure
+      #   if: failure()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: unit_tests-${{ runner.os }}-${{ matrix.compiler }}-${{ matrix.build_type }}
+      #     path: ${{ env.BUILD_DIR }}/tests/unit/unit_tests
+      #     retention-days: 7
 
 # ======================================================================================================================
 # Web Linux
@@ -220,13 +220,13 @@ jobs:
       shell: bash
       run: ctest --test-dir ${{ env.BUILD_DIR }} --output-on-failure
 
-    - name: Upload Test Executable on Failure
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: web-unit_tests-${{ matrix.build_type }}
-        path: ${{ env.BUILD_DIR }}/tests/unit/unit_tests.js
-        retention-days: 7
+    # - name: Upload Test Executable on Failure
+    #   if: failure()
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: web-unit_tests-${{ matrix.build_type }}
+    #     path: ${{ env.BUILD_DIR }}/tests/unit/unit_tests.js
+    #     retention-days: 7
 
 # ======================================================================================================================
 # Web Windows
@@ -259,13 +259,13 @@ jobs:
       shell: bash
       run: ctest --test-dir ${{ env.BUILD_DIR }} --output-on-failure
 
-    - name: Upload Test Executable on Failure
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: web-unit_tests-${{ matrix.build_type }}
-        path: ${{ env.BUILD_DIR }}/tests/unit/unit_tests.js
-        retention-days: 7
+    # - name: Upload Test Executable on Failure
+    #   if: failure()
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: web-unit_tests-${{ matrix.build_type }}
+    #     path: ${{ env.BUILD_DIR }}/tests/unit/unit_tests.js
+    #     retention-days: 7
 
 # ======================================================================================================================
 # Android Linux arm64-v8a
