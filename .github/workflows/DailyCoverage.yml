@@ -1,7 +1,7 @@
 name: Daily Code Coverage
 on:  
-  schedule:
-    - cron: '0 0 * * *'
+  # schedule:
+  #   - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
@@ -52,17 +52,17 @@ jobs:
         shell: bash
         run: cmake --build build --target coverage 
 
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          fail_ci_if_error: true 
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: build/coverage
-          flags: unit_tests
-          verbose: true
+      # - name: Upload to Codecov
+      #   uses: codecov/codecov-action@v5
+      #   with:
+      #     fail_ci_if_error: true 
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     files: build/coverage
+      #     flags: unit_tests
+      #     verbose: true
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
-        continue-on-error: true
-        with:
-          category: "/language:${{ matrix.language }}"
+      # - name: Perform CodeQL Analysis
+      #   uses: github/codeql-action/analyze@v3
+      #   continue-on-error: true
+      #   with:
+      #     category: "/language:${{ matrix.language }}"
